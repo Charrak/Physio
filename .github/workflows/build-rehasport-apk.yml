@@ -1,0 +1,135 @@
+name: Build RehaSport Check APK
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Web-Dateien und Offline-Bibliotheken zusammenstellen
+        run: |
+          set -e
+          test -f rehasport_check.html || (echo "rehasport_check.html fehlt im Repository" && exit 1)
+          mkdir -p build/www/libs/core build/www/libs/lang
+          cp rehasport_check.html build/www/index.html
+          cp rehasport_icd_rules.json build/www/ || true
+          cd build
+          npm init -y > /dev/null
+          npm install --no-audit --no-fund tesseract.js@5 tesseract.js-core@5 @zxing/library@0.21.3 @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6
+          cp node_modules/tesseract.js/dist/tesseract.min.js www/libs/
+          cp node_modules/tesseract.js/dist/worker.min.js www/libs/
+          cp node_modules/@zxing/library/umd/index.min.js www/libs/zxing.min.js
+          cp node_modules/tesseract.js-core/tesseract-core-lstm.wasm* www/libs/core/
+          cp node_modules/tesseract.js-core/tesseract-core-simd-lstm.wasm* www/libs/core/
+          for l in deu eng; do
+            curl -fsSL -o www/libs/lang/$l.traineddata "https://github.com/tesseract-ocr/tessdata_fast/raw/main/$l.traineddata"
+            gzip -9 www/libs/lang/$l.traineddata
+          done
+          ls -la www/libs www/libs/core www/libs/lang
+
+      - name: Android-Projekt erzeugen
+        working-directory: build
+        run: |
+          set -e
+          cat > capacitor.config.json <<'JSON'
+          {
+            "appId": "de.charrak.rehasportcheck",
+            "appName": "RehaSport Check",
+            "webDir": "www",
+            "backgroundColor": "#eef3f9"
+          }
+          JSON
+          npx cap add android
+          npx cap sync android
+
+      - name: Kamera-Berechtigung, Icon und feste Signatur
+        working-directory: build
+        run: |
+          set -e
+          python3 - <<'PY'
+          p = "android/app/src/main/AndroidManifest.xml"
+          s = open(p, encoding="utf-8").read()
+          extra = '    <uses-permission android:name="android.permission.CAMERA" />\n    <uses-feature android:name="android.hardware.camera" android:required="false" />\n'
+          if "android.permission.CAMERA" not in s:
+              s = s.replace("</manifest>", extra + "</manifest>")
+          s = s.replace('android:allowBackup="true"', 'android:allowBackup="false"')
+          open(p, "w", encoding="utf-8").write(s)
+          PY
+          pip install --quiet pillow
+          cat > icon_gen.py <<'PY'
+          import math, os, sys
+          from PIL import Image, ImageDraw
+          S = 1024
+          def heart_points(cx, cy, size, n=240):
+              pts = []
+              for i in range(n):
+                  t = 2 * math.pi * i / n
+                  x = 16 * math.sin(t) ** 3
+                  y = 13 * math.cos(t) - 5 * math.cos(2 * t) - 2 * math.cos(3 * t) - math.cos(4 * t)
+                  pts.append((cx + x * size / 34, cy - y * size / 34))
+              return pts
+          def glyph(size):
+              big = Image.new("RGBA", (size * 2, size * 2), (0, 0, 0, 0))
+              d = ImageDraw.Draw(big)
+              d.polygon(heart_points(size, size * 1.06, size * 2 * 0.92), fill=(255, 255, 255, 255))
+              ln = [(0.24, 0.50), (0.38, 0.50), (0.45, 0.36), (0.55, 0.66), (0.62, 0.50), (0.76, 0.50)]
+              pts = [(x * size * 2, y * size * 2) for x, y in ln]
+              d.line(pts, fill=(37, 99, 235, 255), width=int(size * 0.07), joint="curve")
+              return big.resize((size, size), Image.LANCZOS)
+          def full_icon(size):
+              bg = Image.new("RGBA", (size, size), (37, 99, 235, 255))
+              g = glyph(int(size * 0.62))
+              bg.alpha_composite(g, ((size - g.width) // 2, (size - g.height) // 2))
+              return bg
+          def fg_icon(size):
+              fg = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+              g = glyph(int(size * 0.50))
+              fg.alpha_composite(g, ((size - g.width) // 2, (size - g.height) // 2))
+              return fg
+          def round_icon(size):
+              ic = full_icon(size)
+              mask = Image.new("L", (size, size), 0)
+              ImageDraw.Draw(mask).ellipse((0, 0, size - 1, size - 1), fill=255)
+              out = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+              out.paste(ic, (0, 0), mask)
+              return out
+          if __name__ == "__main__":
+              res = sys.argv[1] if len(sys.argv) > 1 else "/tmp/res"
+              for name, px, fpx in [("mdpi", 48, 108), ("hdpi", 72, 162), ("xhdpi", 96, 216), ("xxhdpi", 144, 324), ("xxxhdpi", 192, 432)]:
+                  d = os.path.join(res, "mipmap-" + name)
+                  os.makedirs(d, exist_ok=True)
+                  full_icon(px).save(os.path.join(d, "ic_launcher.png"))
+                  round_icon(px).save(os.path.join(d, "ic_launcher_round.png"))
+                  fg_icon(fpx).save(os.path.join(d, "ic_launcher_foreground.png"))
+
+          PY
+          python3 icon_gen.py android/app/src/main/res
+          printf '<?xml version="1.0" encoding="utf-8"?>\n<resources>\n    <color name="ic_launcher_background">#2563EB</color>\n</resources>\n' > android/app/src/main/res/values/ic_launcher_background.xml
+          mkdir -p ~/.android
+          echo "MIIKZgIBAzCCChAGCSqGSIb3DQEHAaCCCgEEggn9MIIJ+TCCBcAGCSqGSIb3DQEHAaCCBbEEggWtMIIFqTCCBaUGCyqGSIb3DQEMCgECoIIFQDCCBTwwZgYJKoZIhvcNAQUNMFkwOAYJKoZIhvcNAQUMMCsEFGLn28TsdiuWx+7NW+MdmYc4T/58AgInEAIBIDAMBggqhkiG9w0CCQUAMB0GCWCGSAFlAwQBKgQQu2SZpwgHxJxgnAaiLibmqwSCBNAy9JDceCttVzFP27l6iwc+zVvxS6wxkW6XwpBYCfdRreLGnA64pRCjgQrOyMqAV86aMYPNvXaMKHT6E28mEIQwM704weMt/ToDtdlfDIJUHTpejBKGlTQab+mdgAY2HHUgWTOaFBemSCLW9MBlW1jNql5ozSlEuD9NCV9T9rXNP6uzhwFSwCFlmMizPZS3ev0jUkVNnMtw42Qm+HGb30cqwQ6xw4OkoRsJmuuzRLroxZucaaOBQOT3WYn+xF4bD0JcNhv9XbAVNvhM9N4zfLMkM1iTScXhhzp/TwsvOu21i9a//RJ+VHQnCj00coFd8nhNgaqzhT7n6hX78QatroJiqNq0gfUygqL4U8oEKUWBvZlRRZ+L1xF/T8fOdbfa9iwBl+9FyAzAfeyq5mV5nE8pFEqPErbV0egQLw+Ca92UKgbndwIhV50ubB/RS/mTXG4GdDwTnXSvDQYU3bheIYnPzeBmeECBIOeerdpXGTyVOwJhYvoeTc1y/XaaimpKZFCV6Bf2O/b8zN3r/52r+uIUvNsuohJ/FrQZIqQe+1Y1DRoauZEVaOfs+GT4if0IuxOh9qAR100u27GbgrSQ0+e1aC8sILSrtwCdWUZfudLY5Ez036FVGfYEpLasyfYVrwbsNqlzZnO1mlf1q1NUwABxSeav+HWRiGpxZjmHwG8iDG4mp8pygHrD4t/A876WtMpzXpbHAqKKNSvV4IksV3LRPCe3rqrbHp3ZEXwwJf6sytvELZmPKXV0JGts57l3QnW+GQHLlhpuq4qUAcJRFqA05pkct+0vheBpC+xClRfMxvZk4zR3uz5kMEYfhtSI3WXQldmsF8GtTn51QZrNWV2bJLUVZ7qXkZxSyOKFPQOaxUTWRmkLs48z/d0NuajtKe54Qh69j3qvSTCWZF5yJz22AI55d6j6ZNYdAdrFHQ8yJd9T0qpVTMP7/kGdUvtiV65FclpG+YAKLGH0oecfRRXipd9UUbUSquQiezvahpuZVr9/zaIrrl0FVl3joz8ECowdxBdMGqcVavZyo9mTDIKcEGEMeC/Mp8kxU6H3u4ePm9q6c7RLvhYfCJFiWulozqfonuPk8oRwH8jFiECpwGYJJqo9icwGSq5KCFA87Jdg16+nsclt1sphsVHIeQGDpRh/IwkFotVw/E5HhY4kuOuNGmJqGl6THEydP4ZWX272q9Ud0rAqGZq2PtIlLpwLIg+/jlOAt4F5DuNpDWjCY5YgSrg/79EKrDboQXEM/77CDkzUSw3wf9OZ8GXaQHgHAl0I1ptI8YtJW6JoBllSPctrCfrcLtl08PIlvVrUgBq/ZR+qeHTsYEfwF9e4BLcdMsEJ8QDRrBks4/xCDxjdt5kmBvlVdlQHWMlwHwilODnSj+Ikw6BApx5UlGkPIv99Kn6k5hkIDUoeYz6U4WQ9ABFP4hXXUpDrqxl9VrqE+B6Iibq4tjVkrPV0IMNPWOrEepEqvK96o3jfeEVws5aFhZejJhDJgGAomO+qgpci+xUpm/zDJMrcvLGYVjU7KGr/Azu7FidIwJ2EhEKiWm6fOzTwE7/d9OIzSkkaM3x8WPAC2MM4HSPcINLqkzakCWB2Hex9eKLeeaDbsIQX6+oCF4O0yl0nAV1nldY6gf9yqPKNGzFSMC0GCSqGSIb3DQEJFDEgHh4AYQBuAGQAcgBvAGkAZABkAGUAYgB1AGcAawBlAHkwIQYJKoZIhvcNAQkVMRQEElRpbWUgMTc5MzEyOTQ5MzU2MTCCBDEGCSqGSIb3DQEHBqCCBCIwggQeAgEAMIIEFwYJKoZIhvcNAQcBMGYGCSqGSIb3DQEFDTBZMDgGCSqGSIb3DQEFDDArBBRN6fy/1dEwK+eAJ2GLJTCrePg7jAICJxACASAwDAYIKoZIhvcNAgkFADAdBglghkgBZQMEASoEEHopqtd3KWuL1wBQhAriaeOAggOgi/va2sO1LHcSDmIVASnFak5p2BXYMjh8elEr1k7DrQDTd5QyS4DWwQKhVhc+lwhCJRw49Ybc+hUh3zBZ2SY+9dJSZdlhVQbfKP2xEHLBJOVtFjWSrFy1ruBduGrmz9apJzyYpcfiCx2oIp0moQiNvY4uEJvDF79ABu58Qr/0fuB1LDcquBPiIBxeG/CuLzfavrwRH3CPvv5ZSMxaq097a+J6CI+04PfgfAnUx9FXzaO1J0BuEGqAh05qqF/WeSU9VL2lERu5xXHUFJN6ZMavDGeTEQm3Y4c6VmzAEY9y+aAXMbiC5KLg0+/JwdHvJ+Ihymwk5xXAaxm3touqx8mazRgferP72S9wJxTuEWnCZrn67HZXHPff3KZ3e5ISs9xQJAbJBp7T/E50O0Nx82vzdAD8LIGlgyLje7wKwhXkfG6qhYNHSiy38GHDgZuZvZxJREMFmW5SHaeG6zO0JdeTq787lCcA6XqdqpybqjtnX9DfkXNJUgFUnI/vN0Bg0grdmGSpAzdHtQ9vKFV8lOVfTz78jIUvm0Uo/RdWLwJS/ysi963Wb8MiLiFK0d6d9VBXAypiTcop9aCNnfXiJJwDQBJgaTSQIT8TjF1pehafdT8k+oeukvDKdjnDD/OO4uOEZHIbkK260EJqHSLvzZRQa6VVMtW+AaW3E1iIDj7rP7FE8zVOFgFF3hMBR2B1StO6mVac9HAVrpPO8A896C6lCj1Eg1Sr0vVfeM//fVt8Qui0YIjzdiYpl1daxIYtlqFIj1MHXyzO0CBRySwvq4Nx768v/Bwf2qRFlFVlF/99862Hp7klSfRNkIFW+YWpTQCW7QJyCira8lWBylmFczNIdvRkTB34RJ7eQLlS+xCnAGfHESDwq+S2WDy8UqYSZkXv3aSPXi6D2nnYECwupi69uufZDayPO6WNPIkylfR1Z/lRKGG8Wky+d4CwzesFp0a9A0uHNTkwLYPlF1FqLGvrQXX4a0Zi8JFd2rvtJjTTncFIxpj1Er9+IfC5OBj/2b1fowY6Jl9Akue3G8Xp6xD8mlxy7V5O7ZNq+VmvH76vzG5urqVKwkdX/HDKmN3nj+RdUgKmdyy8znwQukpPHtcGkFqwWEwGmPY1MshZmiA5k8CwYSV2o1jbN53FaokgnDJ3QZzW7LnjTks4k2lwU8vPhKZ2uGZy4yYlrbDu0pJuCycDErsac5f9lTBWKMRauGxcwalP8RfEoUn1v7OU49218zBNMDEwDQYJYIZIAWUDBAIBBQAEIEt3R35V33HhmTkKnF2LYjw+nifqCmJ55BYz/TtlDkuABBQE7if6TiETmY4/SuM3FB1dZYXczwICJxA=" | base64 -d > ~/.android/debug.keystore
+
+      - name: APK bauen
+        working-directory: build/android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: RehaSport-Check-APK
+          path: build/android/app/build/outputs/apk/debug/app-debug.apk
+          
