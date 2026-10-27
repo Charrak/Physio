@@ -1,0 +1,200 @@
+{
+  "version": "2026.10.1",
+  "stand": "2026-10-27",
+  "quelle": "Beispiel-Regelwerk Rehasport (technischer Prototyp, keine verbindliche Regelbasis)",
+  "hinweis": "Vereinfachte Beispieldaten. Eine echte Prüfung muss anhand der jeweils geltenden offiziellen Vorgaben (Rahmenvereinbarung Rehabilitationssport/Funktionstraining) erfolgen.",
+  "regeln": {
+    "M54": {
+      "name": "Rückenschmerzen",
+      "gruppe": "ORTHO",
+      "symptome": [
+        "Bewegungseinschränkung",
+        "Kraftdefizit",
+        "Schmerzen"
+      ]
+    },
+    "M51": {
+      "name": "Bandscheibenschäden",
+      "gruppe": "ORTHO",
+      "symptome": [
+        "Bewegungseinschränkung",
+        "Kraftdefizit",
+        "Schmerzen",
+        "Koordination"
+      ]
+    },
+    "M47": {
+      "name": "Spondylose",
+      "gruppe": "ORTHO",
+      "symptome": [
+        "Bewegungseinschränkung",
+        "Schmerzen"
+      ]
+    },
+    "M17": {
+      "name": "Gonarthrose (Kniegelenksarthrose)",
+      "gruppe": "ORTHO",
+      "symptome": [
+        "Bewegungseinschränkung",
+        "Kraftdefizit",
+        "Schmerzen"
+      ]
+    },
+    "M16": {
+      "name": "Coxarthrose (Hüftgelenksarthrose)",
+      "gruppe": "ORTHO",
+      "symptome": [
+        "Bewegungseinschränkung",
+        "Kraftdefizit",
+        "Schmerzen"
+      ]
+    },
+    "M19": {
+      "name": "Sonstige Arthrose",
+      "gruppe": "ORTHO",
+      "symptome": [
+        "Bewegungseinschränkung",
+        "Schmerzen"
+      ]
+    },
+    "M23": {
+      "name": "Binnenschädigung des Kniegelenkes",
+      "gruppe": "ORTHO",
+      "symptome": [
+        "Bewegungseinschränkung",
+        "Kraftdefizit",
+        "Schmerzen"
+      ]
+    },
+    "M75": {
+      "name": "Schulterläsionen",
+      "gruppe": "ORTHO",
+      "symptome": [
+        "Bewegungseinschränkung",
+        "Schmerzen",
+        "Kraftdefizit"
+      ]
+    },
+    "M25": {
+      "name": "Sonstige Gelenkkrankheiten",
+      "gruppe": "ORTHO",
+      "symptome": [
+        "Bewegungseinschränkung",
+        "Schmerzen"
+      ]
+    },
+    "I10": {
+      "name": "Essentielle Hypertonie (Bluthochdruck)",
+      "gruppe": "INNERE",
+      "symptome": [
+        "Ausdauer",
+        "Stoffwechsel"
+      ]
+    },
+    "E11": {
+      "name": "Diabetes mellitus Typ 2",
+      "gruppe": "INNERE",
+      "symptome": [
+        "Stoffwechsel",
+        "Ausdauer"
+      ]
+    },
+    "E66": {
+      "name": "Adipositas",
+      "gruppe": "INNERE",
+      "symptome": [
+        "Stoffwechsel",
+        "Ausdauer"
+      ]
+    },
+    "J45": {
+      "name": "Asthma",
+      "gruppe": "INNERE",
+      "symptome": [
+        "Ausdauer"
+      ]
+    },
+    "J44": {
+      "name": "Chronisch obstruktive Lungenkrankheit (COPD)",
+      "gruppe": "INNERE",
+      "symptome": [
+        "Ausdauer"
+      ]
+    },
+    "I25": {
+      "name": "Chronische ischämische Herzkrankheit (KHK)",
+      "gruppe": "HERZ",
+      "symptome": [
+        "Ausdauer"
+      ]
+    },
+    "I50": {
+      "name": "Herzinsuffizienz",
+      "gruppe": "HERZ",
+      "symptome": [
+        "Ausdauer"
+      ],
+      "zusatz": [
+        "HI"
+      ]
+    },
+    "I21": {
+      "name": "Akuter Myokardinfarkt (Zustand nach)",
+      "gruppe": "HERZ",
+      "symptome": [
+        "Ausdauer"
+      ]
+    },
+    "G20": {
+      "name": "Parkinson-Syndrom",
+      "gruppe": "NEURO",
+      "symptome": [
+        "Koordination",
+        "Bewegungseinschränkung",
+        "Kraftdefizit"
+      ]
+    },
+    "G35": {
+      "name": "Multiple Sklerose",
+      "gruppe": "NEURO",
+      "symptome": [
+        "Koordination",
+        "Kraftdefizit",
+        "Bewegungseinschränkung"
+      ]
+    },
+    "I63": {
+      "name": "Hirninfarkt (Schlaganfall-Folgen)",
+      "gruppe": "NEURO",
+      "symptome": [
+        "Koordination",
+        "Bewegungseinschränkung",
+        "Kraftdefizit"
+      ]
+    },
+    "G45": {
+      "name": "Transitorische ischämische Attacke (TIA)",
+      "gruppe": "NEURO",
+      "symptome": [
+        "Koordination",
+        "Ausdauer"
+      ]
+    },
+    "G40": {
+      "name": "Epilepsie",
+      "gruppe": "NEURO",
+      "symptome": [
+        "Koordination"
+      ]
+    },
+    "G81": {
+      "name": "Hemiparese und Hemiplegie",
+      "gruppe": "NEURO",
+      "symptome": [
+        "Bewegungseinschränkung",
+        "Kraftdefizit",
+        "Koordination"
+      ]
+    }
+  }
+}

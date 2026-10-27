@@ -1,0 +1,1652 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2563eb">
+<title>RehaSport Check</title>
+<style>
+:root{
+  --bg:#eef3f9;--card:#fff;--ink:#1f2d3d;--muted:#64748b;--line:#dde6ee;
+  --blue:#2563eb;--blue2:#1d4ed8;--blue-soft:#eaf1ff;
+  --green:#e0f3e5;--greenink:#185b2b;--red:#fde8e8;--redink:#842029;--amber:#fff4d6;--amberink:#70520b;
+  --radius:18px;--shadow:0 8px 28px rgba(23,43,58,.08);--shadow-sm:0 3px 12px rgba(23,43,58,.06);
+  --nav-h:66px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg);font-family:system-ui,-apple-system,"Segoe UI",Roboto,Roboto,"Helvetica Neue",Arial,sans-serif;color:var(--ink);-webkit-font-smoothing:antialiased}
+.app{max-width:560px;margin:0 auto;min-height:100vh;background:linear-gradient(180deg,#f4f8fd 0%,var(--bg) 100%);position:relative;padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom) + 18px)}
+
+/* ---------- App-Top-Bar ---------- */
+.appbar{position:sticky;top:0;z-index:30;background:rgba(255,255,255,.88);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--line);padding:14px 18px;display:flex;align-items:center;gap:12px}
+.brand{display:flex;align-items:center;gap:11px;min-width:0}
+.brand-mark{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,var(--blue),#4f8dff);display:grid;place-items:center;color:#fff;flex-shrink:0;box-shadow:0 4px 12px rgba(37,99,235,.32)}
+.brand-mark svg{width:22px;height:22px}
+.appbar h1{font-size:1.06rem;margin:0;letter-spacing:-.01em}
+.appbar p{margin:2px 0 0;font-size:.76rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:46vw}
+
+/* ---------- Content & Views ---------- */
+.content{padding:18px 16px 8px}
+.view{display:none;animation:viewIn .28s ease both}
+.view.active{display:block}
+@keyframes viewIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.view-head{margin:2px 2px 16px}
+.view-head h2{font-size:1.32rem;margin:0 0 4px;letter-spacing:-.02em}
+.view-head p{margin:0;font-size:.86rem;color:var(--muted);line-height:1.5}
+
+.card{background:var(--card);border:1px solid #e7eef4;border-radius:var(--radius);box-shadow:var(--shadow-sm);padding:18px;margin-bottom:16px}
+.card h2,.card h3{font-size:1rem;margin:0 0 12px;letter-spacing:-.01em}
+.card h3{margin-top:20px;padding-top:16px;border-top:1px solid #eef2f6}
+.card h3:first-child{margin-top:0;padding-top:0;border-top:0}
+
+label{display:block;font-weight:700;margin:0 0 7px;font-size:.92rem}
+input,select,textarea{font:inherit;font-size:16px;width:100%;padding:12px 13px;border:1px solid var(--line);border-radius:12px;background:#fff;color:var(--ink);transition:border-color .15s,box-shadow .15s}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.14)}
+input[type=file]{padding:11px;background:#f8fafd}
+textarea{min-height:110px;resize:vertical}#ocrText{min-height:110px}
+button{font:inherit}
+button.primary,.btnrow button:not(.secondary):not(.ghost):not(.danger):not(.warnbtn){width:100%;border:0;border-radius:12px;background:linear-gradient(135deg,var(--blue),#3b78f0);color:#fff;font-weight:700;padding:14px 16px;cursor:pointer;margin-top:10px;box-shadow:0 5px 14px rgba(37,99,235,.25);transition:transform .08s,box-shadow .15s,filter .15s}
+button.primary:hover,.btnrow button:not(.secondary):not(.ghost):not(.danger):not(.warnbtn):hover{filter:brightness(1.05)}
+button:active{transform:scale(.985)}
+button:disabled{opacity:.5;cursor:wait;box-shadow:none}
+button.secondary,button.ghost{background:var(--blue-soft);color:var(--blue2);border:1px solid #cdddf8}
+button.secondary:hover,button.ghost:hover{background:#dde9fd}
+button.danger,button.warnbtn{background:#fbeaea;color:#872f2f;border:1px solid #e8bcbc}
+button.danger:hover,button.warnbtn:hover{background:#f6dede}
+.btnrow{display:grid;grid-template-columns:1fr 1fr;gap:10px}.btnrow button{margin-top:0}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.field{margin-bottom:15px}
+#barcodeFields .field label{font-size:13px;font-weight:600;color:var(--muted);margin-bottom:4px}
+.hint,.small{font-size:12px;line-height:1.55;color:var(--muted);margin-top:6px}
+img.preview{display:none;max-width:100%;max-height:440px;object-fit:contain;margin:14px auto 0;border:1px solid var(--line);border-radius:12px}
+#cameraVideo{display:none;width:100%;margin-top:14px;border:1px solid var(--line);border-radius:12px;background:#0d1420}
+.progress{font-size:14px;color:var(--muted);margin-top:10px;line-height:1.5}
+#result,#barcodeMsg,#autoInfo{display:none;padding:14px 15px;border-radius:12px;line-height:1.55;margin-top:14px}
+#result.valid,#barcodeMsg.valid{display:block;background:var(--green);color:var(--greenink);border:1px solid #a9d9b5}
+#result.invalid,#barcodeMsg.invalid{display:block;background:var(--red);color:var(--redink);border:1px solid #f3b9bf}
+#result.warn,#barcodeMsg.warn{display:block;background:var(--amber);color:var(--amberink);border:1px solid #ead28c}
+#barcodeMsg.info{display:block;background:var(--blue-soft);color:var(--blue2);border:1px solid #cdddf8}
+#autoInfo.ok{display:block;color:var(--greenink);background:var(--green);border:1px solid #a9d9b5}
+#autoInfo.warn{display:block;color:var(--amberink);background:var(--amber);border:1px solid #ead28c}
+select.auto-flash{outline:2px solid #d9a93b;outline-offset:2px}
+.badge{display:inline-block;background:var(--blue);color:#fff;border-radius:999px;padding:5px 13px;font-size:13px;font-weight:700;margin:4px 0 12px}
+.badge.gray{background:#64748b}
+#barcodeFields input[readonly]{background:#f6f9fa;font-weight:600}
+.pill{display:inline-block;background:#e2edf3;color:var(--blue2);border-radius:999px;padding:2px 9px;font-size:12px;font-weight:700;margin:2px 4px 2px 0}
+.pill.on{background:var(--blue);color:#fff}
+#regelStatus{font-size:13px;line-height:1.5;margin-top:10px}
+#regelStatus.ok{color:var(--greenink)}#regelStatus.warn{color:var(--amberink)}#regelStatus.err{color:var(--redink)}
+.muted-empty{font-size:13px;color:var(--muted);font-style:italic;margin:6px 0 2px}
+.checkgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px;margin:6px 0 4px}
+.checkgrid label{display:flex;align-items:flex-start;gap:8px;font-weight:500;font-size:14px;margin:0;cursor:pointer}
+.checkgrid input{width:auto;margin-top:3px}
+.trainer-row{display:flex;align-items:center;justify-content:space-between;gap:10px;border:1px solid var(--line);border-radius:12px;padding:11px 13px;margin-bottom:8px;background:#fbfdff}
+.trainer-row .t-name{font-weight:700}
+.trainer-row .t-quals{font-size:12.5px;color:var(--muted);margin-top:2px;line-height:1.4}
+.mini-btns{display:flex;gap:6px;flex-shrink:0}
+.mini-btns button{width:auto;margin:0;padding:8px 12px;font-size:13px;border-radius:10px}
+#eignung{display:none;padding:13px 15px;border-radius:12px;line-height:1.55;margin-top:14px}
+#eignung.ok{display:block;background:var(--green);color:var(--greenink);border:1px solid #a9d9b5}
+#eignung.bad{display:block;background:var(--red);color:var(--redink);border:1px solid #f3b9bf}
+#eignung ul{margin:8px 0 2px;padding-left:18px}
+.notice{font-size:12px;line-height:1.6;color:var(--muted);background:#f8fafd;border:1px solid var(--line);border-radius:12px;padding:14px 15px;margin:4px 0 0}
+
+/* ---------- Segmented control (Scan-View) ---------- */
+.segmented{display:flex;background:#e4ecf5;border-radius:13px;padding:4px;gap:4px;margin-bottom:16px}
+.seg{flex:1;border:0;background:transparent;color:var(--muted);font-weight:700;font-size:.86rem;padding:10px 8px;border-radius:10px;cursor:pointer;transition:all .18s;display:flex;align-items:center;justify-content:center;gap:7px}
+.seg svg{width:17px;height:17px}
+.seg.active{background:#fff;color:var(--blue2);box-shadow:var(--shadow-sm)}
+.seg-panel[hidden]{display:none}
+
+/* ---------- Bottom Navigation ---------- */
+.bottomnav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:560px;z-index:40;
+  background:rgba(255,255,255,.92);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border-top:1px solid var(--line);display:flex;padding:6px 8px calc(6px + env(safe-area-inset-bottom));height:calc(var(--nav-h) + env(safe-area-inset-bottom))}
+.navbtn{flex:1;border:0;background:transparent;color:var(--muted);font:inherit;font-size:.72rem;font-weight:700;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;border-radius:12px;transition:color .15s,background .15s;padding:4px 2px}
+.navbtn svg{width:23px;height:23px;stroke-width:1.9}
+.navbtn.active{color:var(--blue);background:var(--blue-soft)}
+.navbtn:active{transform:scale(.96)}
+
+/* ---------- Toast ---------- */
+.toast-wrap{position:fixed;left:50%;bottom:calc(var(--nav-h) + env(safe-area-inset-bottom) + 14px);transform:translateX(-50%);z-index:60;display:flex;flex-direction:column;gap:8px;align-items:center;width:min(92vw,520px)}
+.toast{background:#1f2d3d;color:#fff;font-size:.86rem;font-weight:600;padding:11px 18px;border-radius:999px;box-shadow:0 10px 26px rgba(15,23,42,.3);animation:toastIn .25s ease both;max-width:100%;text-align:center}
+.toast.ok{background:#15803d}.toast.err{background:#b91c1c}.toast.warn{background:#a16207}
+@keyframes toastIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.toast.out{animation:toastOut .3s ease both}
+@keyframes toastOut{to{opacity:0;transform:translateY(10px)}}
+
+.appbar-btn{margin-left:auto;width:auto;flex-shrink:0;display:flex;align-items:center;gap:6px;border:1px solid #cdddf8;background:var(--blue-soft);color:var(--blue2);border-radius:12px;padding:9px 12px;font-weight:700;font-size:.8rem;cursor:pointer}
+.appbar-btn svg{width:16px;height:16px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:-6px 0 14px}
+.chips:empty{display:none}
+.chips .chip{width:auto;border:1px solid #cdddf8;background:var(--blue-soft);color:var(--blue2);border-radius:999px;padding:6px 12px;font-size:13px;font-weight:700;cursor:pointer}
+.chips .chip.on{background:var(--blue);color:#fff;border-color:var(--blue)}
+.chips .lbl{font-size:12px;color:var(--muted);align-self:center;margin-right:2px}
+.ocr-opt{display:flex;align-items:flex-start;gap:8px;font-weight:500;font-size:.88rem;margin:12px 0 0;cursor:pointer}
+.ocr-opt input{width:auto;margin-top:3px}
+textarea.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px}
+@media(max-width:520px){.grid{grid-template-columns:1fr;gap:0}.btnrow{grid-template-columns:1fr 1fr}.content{padding:14px 12px 8px}.card{padding:15px}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="appbar">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"/><path d="M3.22 12H9.5l.5-1 2 4.5 2-7 1.5 3.5h5.27"/></svg>
+      </span>
+      <div>
+        <h1>RehaSport Check</h1>
+        <p id="appbarRegel">Regelwerk wird geladen …</p>
+      </div>
+    </div>
+    <button id="resetAllBtn" class="appbar-btn" type="button" aria-label="Neue Verordnung beginnen (alle Eingaben löschen)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+      Neu
+    </button>
+  </header>
+
+  <main class="content">
+
+    <!-- ============ VIEW: SCANNEN ============ -->
+    <section class="view active" id="view-scan" data-view="scan">
+      <div class="view-head">
+        <h2>Verordnung scannen</h2>
+        <p>Foto oder PDF417-Barcode einlesen. Die Verarbeitung läuft komplett lokal auf dem Gerät – keine Daten verlassen das Gerät.</p>
+      </div>
+
+      <div class="segmented" role="tablist" aria-label="Erkennungsart">
+        <button class="seg active" id="segOcrBtn" type="button" role="tab" aria-selected="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 12h10"/></svg>
+          Foto (OCR)
+        </button>
+        <button class="seg" id="segBarcodeBtn" type="button" role="tab" aria-selected="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5v14"/><path d="M7 5v14"/><path d="M11 5v14"/><path d="M15 5v14"/><path d="M19 5v14"/></svg>
+          PDF417-Code
+        </button>
+      </div>
+
+      <div class="seg-panel" id="seg-ocr">
+        <div class="card">
+          <h2>1. Verordnung fotografieren oder auswählen</h2>
+          <label for="photo">Foto der Verordnung</label>
+          <input id="photo" type="file" accept="image/*" capture="environment">
+          <div class="hint">Tipp: gute Beleuchtung, Dokument gerade halten und alle relevanten Felder vollständig fotografieren.</div>
+          <img id="preview" class="preview" alt="Vorschau des ausgewählten Verordnungsfotos">
+          <label class="ocr-opt"><input type="checkbox" id="ocrEnhance" checked> Foto vor der Erkennung aufbereiten (Größe, Kontrast) – empfohlen</label>
+          <button id="readBtn" class="primary" type="button" disabled style="margin-top:12px">Text aus Foto erkennen</button>
+          <div id="progress" class="progress" aria-live="polite"></div>
+          <p class="small">Die Texterkennung läuft auf dem Gerät. In der APK sind OCR-Modul und Sprachdaten enthalten (kein Internet nötig); im normalen Browser werden sie beim ersten Start ggf. aus dem Internet geladen. Das Foto wird nicht an einen Server gesendet oder dauerhaft gespeichert.</p>
+        </div>
+      </div>
+
+      <div class="seg-panel" id="seg-barcode" hidden>
+        <div class="card">
+          <h2>2. PDF417-Barcode einlesen</h2>
+          <label for="barcodePhoto">Foto mit dem PDF417-Barcode (z. B. Seite 2 der Verordnung)</label>
+          <input id="barcodePhoto" type="file" accept="image/*" capture="environment">
+          <img id="barcodePreview" class="preview" alt="Vorschau des Barcode-Fotos">
+          <div class="btnrow" style="margin-top:12px">
+            <button id="barcodeReadBtn" type="button" disabled>PDF417 erkennen</button>
+            <button id="usePhotoBtn" type="button" class="secondary">Foto aus OCR nutzen</button>
+          </div>
+          <div class="btnrow" style="margin-top:10px">
+            <button id="cameraBtn" type="button" class="secondary">Kamera-Scan starten</button>
+            <button id="cameraStopBtn" type="button" class="danger" style="display:none">Kamera stoppen</button>
+          </div>
+          <video id="cameraVideo" playsinline muted></video>
+          <div id="barcodeProgress" class="progress" aria-live="polite"></div>
+
+          <div style="margin-top:16px">
+            <label for="barcodeRaw">Rohdaten des Barcodes (TAB-getrennte Feldwerte)</label>
+            <textarea id="barcodeRaw" rows="4" placeholder="Nach dem Scan erscheinen hier die gelesenen Rohdaten. Du kannst sie bei Bedarf korrigieren und anschließend neu auswerten."></textarea>
+            <button id="barcodeReparseBtn" type="button" class="secondary" style="margin-top:8px">Felder neu auslesen</button>
+          </div>
+
+          <div id="barcodeMsg" role="status" aria-live="polite"></div>
+          <div id="barcodeBadgeWrap"></div>
+          <div id="barcodeFields" class="grid"></div>
+          <p class="small">Hinweis: Der Barcode des Musters 56 enthält laut KBV-Definition nur Verwaltungsdaten (Versicherter, Kostenträger, Arztpraxis, Ausstellungsdatum) – jedoch <strong>keine ICD-10-Diagnosen</strong>. Diese werden weiterhin über die OCR-Texterkennung erfasst. Barcodes anderer Formulare (z. B. Muster 13) können auch ICD-10-Codes enthalten; diese werden dann automatisch in die Prüfung übernommen.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ VIEW: PRÜFUNG ============ -->
+    <section class="view" id="view-check" data-view="check" hidden>
+      <div class="view-head">
+        <h2>Angaben &amp; Plausibilität</h2>
+        <p>Erkannte Daten kontrollieren, automatisch zuordnen lassen und die Trainer-Eignung prüfen.</p>
+      </div>
+
+      <div class="card">
+        <h3>3. Erkannte Angaben kontrollieren</h3>
+        <div class="field">
+          <label for="icd10">ICD-10-Code</label>
+          <input id="icd10" placeholder="z. B. M54.5" autocomplete="off" autocapitalize="characters" spellcheck="false">
+        </div>
+        <div id="icdChips" class="chips" aria-label="Weitere erkannte ICD-10-Codes"></div>
+        <div class="field">
+          <label for="diagnose">Erkannte Diagnose / Text (manuell korrigierbar)</label>
+          <textarea id="diagnose" rows="3" placeholder="Erkannter Diagnose- oder Verordnungstext"></textarea>
+        </div>
+        <div class="field">
+          <label for="ocrText">Vollständiger erkannter Text</label>
+          <textarea id="ocrText" rows="6" placeholder="Nach der Texterkennung erscheint der gelesene Text hier. Du kannst ihn bearbeiten."></textarea>
+          <div class="hint">Bitte den erkannten Text immer mit dem Original vergleichen. Handschrift, Stempel und schlechte Fotos können falsch erkannt werden.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>4. Plausibilität &amp; Trainer-Eignung</h3>
+        <div class="grid">
+          <div class="field">
+            <label for="gruppe">Diagnosegruppe</label>
+            <select id="gruppe">
+              <option value="">-- Bitte wählen --</option>
+              <option value="ORTHO">Orthopädie</option>
+              <option value="INNERE">Innere Medizin</option>
+              <option value="HERZ">Herzsport / Kardiologie</option>
+              <option value="NEURO">Neurologie</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="symptom">Leitsymptomatik</label>
+            <select id="symptom">
+              <option value="">-- Bitte wählen --</option>
+              <option value="Bewegungseinschränkung">Bewegungseinschränkung</option>
+              <option value="Kraftdefizit">Kraftdefizit / muskuläre Dysbalance</option>
+              <option value="Schmerzen">Schmerzen bei Belastung</option>
+              <option value="Koordination">Koordination / Gleichgewicht</option>
+              <option value="Ausdauer">Belastbarkeit / Ausdauer</option>
+              <option value="Stoffwechsel">Stoffwechselstörung</option>
+            </select>
+          </div>
+        </div>
+        <div class="btnrow">
+          <button id="autoBtn" type="button" class="secondary">Automatisch ausfüllen</button>
+          <button id="checkBtn" type="button">Angaben prüfen</button>
+        </div>
+        <div id="autoInfo" role="status" aria-live="polite"></div>
+        <div id="result" role="status" aria-live="polite"></div>
+        <div id="eignung" role="status" aria-live="polite"></div>
+        <div class="btnrow" style="margin-top:14px">
+          <button id="copyResultBtn" type="button" class="secondary">Ergebnis kopieren</button>
+          <button id="newCaseBtn" type="button" class="warnbtn">Neue Verordnung</button>
+        </div>
+        <p class="small">Diagnosegruppe und Leitsymptomatik werden anhand des erkannten ICD-10-Codes automatisch vorausgefüllt. Die Trainer-Eignungsprüfung vergleicht die benötigte Diagnosegruppe automatisch mit den in den Einstellungen hinterlegten Qualifikationen und meldet, falls keine passende Eignung vorliegt.</p>
+      </div>
+    </section>
+
+    <!-- ============ VIEW: EINSTELLUNGEN ============ -->
+    <section class="view" id="view-settings" data-view="settings" hidden>
+      <div class="view-head">
+        <h2>Einstellungen</h2>
+        <p>Regelwerk aktualisieren und Trainer-Qualifikationen verwalten. Alle Daten bleiben lokal auf dem Gerät.</p>
+      </div>
+
+      <div class="card">
+        <h3>5.1 ICD-Regelwerk (Rehasport-Zuordnungen)</h3>
+        <div class="field">
+          <label>Aktiv: <span id="regelVersion" class="pill on">…</span></label>
+          <div class="small" id="regelMeta">wird geladen …</div>
+        </div>
+        <div class="field">
+          <label for="regelUrl">URL der Regelwerk-Datei (JSON)</label>
+          <input id="regelUrl" type="text" value="rehasport_icd_rules.json" autocomplete="off" spellcheck="false">
+          <div class="hint">Erwartetes Format: <code>{ "version", "stand", "quelle", "regeln": { "M54": { "name", "gruppe", "symptome": [] } } }</code>. Die Datei muss beim Aufruf über HTTP(S) neben dieser HTML-Datei liegen (Same-Origin-Policy).</div>
+        </div>
+        <div class="btnrow">
+          <button id="updateRegelBtn" type="button" class="ghost">Regelwerk aktualisieren</button>
+          <button id="resetRegelBtn" type="button" class="warnbtn">Basis-Regelwerk</button>
+        </div>
+        <div id="regelStatus" role="status" aria-live="polite"></div>
+      </div>
+
+      <div class="card">
+        <h3>5.2 Rehasport-Trainer/innen und Qualifikationen</h3>
+        <div class="field">
+          <label for="trainerName">Name</label>
+          <input id="trainerName" type="text" placeholder="Vor- und Nachname" autocomplete="off">
+        </div>
+        <input type="hidden" id="trainerEditId" value="">
+        <div class="field">
+          <label>Rehasport-Qualifikationen (Lizenzprofile)</label>
+          <div class="checkgrid">
+            <label><input type="checkbox" class="qual" value="ORTHO"> Orthopädie</label>
+            <label><input type="checkbox" class="qual" value="INNERE"> Innere Medizin</label>
+            <label><input type="checkbox" class="qual" value="HERZ"> Herzsport / Kardiologie</label>
+            <label><input type="checkbox" class="qual" value="NEURO"> Neurologie</label>
+          </div>
+          <label style="margin-top:10px;display:flex;align-items:flex-start;gap:8px;font-weight:500;font-size:.88rem;cursor:pointer"><input type="checkbox" id="qualHI" style="width:auto;margin-top:3px">Zusatzqualifikation Herzinsuffizienz-Gruppe (hohes kardiovaskuläres Ereignisrisiko) – wird geprüft, wenn das Regelwerk sie für einen ICD-Code verlangt (z. B. I50)</label>
+        </div>
+        <div class="field">
+          <label for="trainerNotiz">Bemerkung (optional, z. B. Lizenznummer, gültig bis)</label>
+          <input id="trainerNotiz" type="text" placeholder="z. B. Lizenz gültig bis 03/2028" autocomplete="off">
+        </div>
+        <div class="btnrow">
+          <button id="trainerSaveBtn" type="button">Trainer/in speichern</button>
+          <button id="trainerCancelBtn" type="button" class="ghost" style="display:none">Bearbeitung abbrechen</button>
+        </div>
+        <h3>Gespeicherte Trainer/innen <span id="trainerCount" class="pill">0</span></h3>
+        <div id="trainerList"></div>
+        <p class="small">Die Trainer- und Regelwerksdaten werden ausschließlich lokal im Browser (localStorage) gespeichert und nicht an einen Server übertragen. Beim Aufruf über die Datei-Vorschau (file://) kann das Regelwerks-Update je nach Browser blockiert werden – dann bitte über einen Webserver aufrufen oder die integrierten Basisdaten nutzen.</p>
+      </div>
+
+      <div class="card">
+        <h3>5.3 Datensicherung Trainer/innen</h3>
+        <p class="small" style="margin-top:0">Die Trainerliste liegt nur lokal auf dem Gerät und geht bei Deinstallation oder gelöschten App-Daten verloren. Sicherung kopieren und z. B. in einer Notiz ablegen; auf einem anderen Gerät wieder einfügen.</p>
+        <div class="btnrow">
+          <button id="backupCopyBtn" type="button" class="secondary">Sicherung kopieren</button>
+          <button id="backupImportBtn" type="button" class="ghost">Sicherung einlesen</button>
+        </div>
+        <textarea id="backupText" class="mono" rows="4" style="margin-top:10px" placeholder="Hier die kopierte Sicherung einfügen und „Sicherung einlesen“ tippen." spellcheck="false"></textarea>
+        <div id="backupStatus" class="hint" role="status" aria-live="polite"></div>
+        <p class="small" id="appVersion"></p>
+      </div>
+
+      <p class="notice"><strong>Wichtiger Hinweis:</strong> Dies ist ein technischer Prototyp. OCR und Barcode-Erkennung können sich irren. Die ICD-Regeln sind vereinfachte Beispieldaten und keine verbindliche Rehasport-Regelbasis. Eine echte Verordnungsprüfung muss anhand der jeweils geltenden offiziellen Vorgaben und des konkreten Falls erfolgen. Der PDF417-Barcode enthält personenbezogene Daten, die nur lokal verarbeitet werden. Verwende nur eine datenschutzrechtlich freigegebene Lösung.</p>
+    </section>
+  </main>
+
+  <nav class="bottomnav" aria-label="Hauptnavigation">
+    <button class="navbtn active" type="button" data-nav="scan">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M3 12h18"/></svg>
+      Scannen
+    </button>
+    <button class="navbtn" type="button" data-nav="check">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      Prüfung
+    </button>
+    <button class="navbtn" type="button" data-nav="settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      Einstellungen
+    </button>
+  </nav>
+</div>
+<div id="toastWrap" class="toast-wrap" aria-live="polite"></div>
+
+<script>
+
+/* =====================================================================
+ * Abschnitt A: OCR-Texterkennung (Tesseract.js) – gegenüber dem Original
+ * unverändert
+ * ===================================================================== */
+const BASIS_REGELN = {
+  "M54": {name:"Rückenschmerzen", gruppe:"ORTHO", symptome:["Bewegungseinschränkung","Kraftdefizit","Schmerzen"]},
+  "M51": {name:"Bandscheibenschäden", gruppe:"ORTHO", symptome:["Bewegungseinschränkung","Kraftdefizit","Schmerzen","Koordination"]},
+  "M47": {name:"Spondylose", gruppe:"ORTHO", symptome:["Bewegungseinschränkung","Schmerzen"]},
+  "M17": {name:"Gonarthrose (Kniegelenksarthrose)", gruppe:"ORTHO", symptome:["Bewegungseinschränkung","Kraftdefizit","Schmerzen"]},
+  "M16": {name:"Coxarthrose (Hüftgelenksarthrose)", gruppe:"ORTHO", symptome:["Bewegungseinschränkung","Kraftdefizit","Schmerzen"]},
+  "M19": {name:"Sonstige Arthrose", gruppe:"ORTHO", symptome:["Bewegungseinschränkung","Schmerzen"]},
+  "M23": {name:"Binnenschädigung des Kniegelenkes", gruppe:"ORTHO", symptome:["Bewegungseinschränkung","Kraftdefizit","Schmerzen"]},
+  "M75": {name:"Schulterläsionen", gruppe:"ORTHO", symptome:["Bewegungseinschränkung","Schmerzen","Kraftdefizit"]},
+  "M25": {name:"Sonstige Gelenkkrankheiten", gruppe:"ORTHO", symptome:["Bewegungseinschränkung","Schmerzen"]},
+  "I10": {name:"Essentielle Hypertonie (Bluthochdruck)", gruppe:"INNERE", symptome:["Ausdauer","Stoffwechsel"]},
+  "E11": {name:"Diabetes mellitus Typ 2", gruppe:"INNERE", symptome:["Stoffwechsel","Ausdauer"]},
+  "E66": {name:"Adipositas", gruppe:"INNERE", symptome:["Stoffwechsel","Ausdauer"]},
+  "J45": {name:"Asthma", gruppe:"INNERE", symptome:["Ausdauer"]},
+  "J44": {name:"Chronisch obstruktive Lungenkrankheit (COPD)", gruppe:"INNERE", symptome:["Ausdauer"]},
+  "I25": {name:"Chronische ischämische Herzkrankheit (KHK)", gruppe:"HERZ", symptome:["Ausdauer"]},
+  "I50": {name:"Herzinsuffizienz", gruppe:"HERZ", symptome:["Ausdauer"], zusatz:["HI"]},
+  "I21": {name:"Akuter Myokardinfarkt (Zustand nach)", gruppe:"HERZ", symptome:["Ausdauer"]},
+  "G20": {name:"Parkinson-Syndrom", gruppe:"NEURO", symptome:["Koordination","Bewegungseinschränkung","Kraftdefizit"]},
+  "G35": {name:"Multiple Sklerose", gruppe:"NEURO", symptome:["Koordination","Kraftdefizit","Bewegungseinschränkung"]},
+  "I63": {name:"Hirninfarkt (Schlaganfall-Folgen)", gruppe:"NEURO", symptome:["Koordination","Bewegungseinschränkung","Kraftdefizit"]},
+  "G45": {name:"Transitorische ischämische Attacke (TIA)", gruppe:"NEURO", symptome:["Koordination","Ausdauer"]},
+  "G40": {name:"Epilepsie", gruppe:"NEURO", symptome:["Koordination"]},
+  "G81": {name:"Hemiparese und Hemiplegie", gruppe:"NEURO", symptome:["Bewegungseinschränkung","Kraftdefizit","Koordination"]}
+};
+const APP_VERSION = "2.0";
+const BASIS_META = { version: "Basis 2.0", stand: "integrierte Beispieldaten", quelle: "im Programm hinterlegt" };
+// `datenbank` wird durch das Regelwerks-Update (Abschnitt E1) ersetzt; alle
+// anderen Funktionen referenzieren diese Variable und nutzen damit automatisch
+// den aktuellsten Stand.
+let datenbank = JSON.parse(JSON.stringify(BASIS_REGELN));
+let regelMeta = Object.assign({}, BASIS_META);
+const photo = document.getElementById("photo");
+const preview = document.getElementById("preview");
+const readBtn = document.getElementById("readBtn");
+const progress = document.getElementById("progress");
+let selectedFile = null;
+
+photo.addEventListener("change", () => {
+  selectedFile = photo.files && photo.files[0] ? photo.files[0] : null;
+  readBtn.disabled = !selectedFile;
+  progress.textContent = "";
+  if (!selectedFile) { preview.style.display = "none"; preview.removeAttribute("src"); return; }
+  if (!selectedFile.type.startsWith("image/")) {
+    progress.textContent = "Bitte eine Bilddatei auswählen.";
+    readBtn.disabled = true;
+    return;
+  }
+  preview.src = URL.createObjectURL(selectedFile);
+  preview.style.display = "block";
+});
+
+readBtn.addEventListener("click", async () => {
+  if (!selectedFile) return;
+  readBtn.disabled = true;
+  progress.textContent = "Texterkennung wird vorbereitet …";
+  try {
+    const worker = await getOcrWorker();
+    let input = selectedFile;
+    if (document.getElementById("ocrEnhance").checked) {
+      progress.textContent = "Foto wird aufbereitet …";
+      try { input = await prepareForOcr(selectedFile); } catch (e) { input = selectedFile; }
+    }
+    progress.textContent = "Text wird erkannt. Das kann je nach Foto etwas dauern …";
+    const result = await worker.recognize(input);
+    const text = (result.data && result.data.text ? result.data.text : "").trim();
+    document.getElementById("ocrText").value = text;
+    document.getElementById("diagnose").value = text;
+    const kandidaten = findIcdCandidates(text);
+    renderIcdChips(kandidaten);
+    if (kandidaten.length) document.getElementById("icd10").value = kandidaten[0];
+    if (text) {
+      const af = autoFillFromDiagnose(document.getElementById("icd10").value, text);
+      const autoTeil = (af.gruppe || af.symptom) ? " Diagnosegruppe und Leitsymptomatik wurden automatisch vorausgefüllt." : "";
+      const mehr = kandidaten.length > 1 ? " " + kandidaten.length + " ICD-Kandidaten gefunden – bei Bedarf in „Prüfung“ den richtigen antippen." : "";
+      progress.textContent = "Texterkennung abgeschlossen." + autoTeil + mehr + " Bitte alle erkannten Angaben mit dem Foto abgleichen.";
+      openView("check");
+    } else {
+      progress.textContent = "Es wurde kein lesbarer Text erkannt. Versuche ein schärferes Foto.";
+    }
+  } catch (err) {
+    ocrWorker = null; ocrWorkerPromise = null;
+    progress.textContent = "Texterkennung fehlgeschlagen" + (err && err.message ? " (" + err.message + ")" : "") + ". Im Browser bitte Internetverbindung prüfen. Du kannst die Felder auch manuell ausfüllen.";
+  } finally {
+    readBtn.disabled = !selectedFile;
+  }
+});
+
+
+/* ---------- OCR-Worker (offline in der APK, sonst CDN-Fallback) ---------- */
+const OCR_STATUS_DE = {
+  "loading tesseract core": "OCR-Modul wird geladen",
+  "initializing tesseract": "OCR-Modul wird gestartet",
+  "initialized tesseract": "OCR-Modul bereit",
+  "loading language traineddata": "Sprachdaten werden geladen",
+  "loaded language traineddata": "Sprachdaten geladen",
+  "initializing api": "Erkennung wird vorbereitet",
+  "initialized api": "Erkennung bereit",
+  "recognizing text": "Text wird erkannt"
+};
+let ocrWorker = null;
+let ocrWorkerPromise = null;
+
+async function localExists(path) {
+  try {
+    const r = await fetch(path, { cache: "no-store" });
+    if (r.body && r.body.cancel) { try { r.body.cancel(); } catch (e) {} }
+    return r.ok;
+  } catch (e) { return false; }
+}
+function absUrl(path) { return new URL(path, document.baseURI).href; }
+
+function getOcrWorker() {
+  if (ocrWorker) return Promise.resolve(ocrWorker);
+  if (ocrWorkerPromise) return ocrWorkerPromise;
+  ocrWorkerPromise = (async () => {
+    if (!window.Tesseract) {
+      try { await loadScript("libs/tesseract.min.js"); }
+      catch (e) { await loadScript("https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"); }
+    }
+    const opts = {
+      logger: m => {
+        if (!m || !m.status) return;
+        const txt = OCR_STATUS_DE[m.status] || m.status;
+        const pct = typeof m.progress === "number" ? " (" + Math.round(m.progress * 100) + " %)" : "";
+        progress.textContent = txt + pct;
+      }
+    };
+    const lokal = (await localExists("libs/worker.min.js")) &&
+                  (await localExists("libs/core/tesseract-core-simd-lstm.wasm.js")) &&
+                  (await localExists("libs/lang/deu.traineddata.gz")) &&
+                  (await localExists("libs/lang/eng.traineddata.gz"));
+    if (lokal) {
+      opts.workerPath = absUrl("libs/worker.min.js");
+      opts.corePath = absUrl("libs/core");
+      opts.langPath = absUrl("libs/lang");
+      opts.workerBlobURL = false;
+      opts.cacheMethod = "none";
+    }
+    ocrWorker = await Tesseract.createWorker("deu+eng", 1, opts);
+    return ocrWorker;
+  })();
+  ocrWorkerPromise.catch(() => { ocrWorkerPromise = null; });
+  return ocrWorkerPromise;
+}
+
+/* Foto aufbereiten: EXIF-Drehung, sinnvolle Größe, Graustufen + Kontrastdehnung */
+async function prepareForOcr(file) {
+  let src = null, w = 0, h = 0, url = null;
+  try {
+    src = await createImageBitmap(file, { imageOrientation: "from-image" });
+    w = src.width; h = src.height;
+  } catch (e) {
+    const loaded = await loadImageFromFile(file);
+    src = loaded.img; url = loaded.url;
+    w = src.naturalWidth || src.width; h = src.naturalHeight || src.height;
+  }
+  const max = Math.max(w, h);
+  const scale = max > 2200 ? 2200 / max : (max < 1400 ? Math.min(2, 1600 / max) : 1);
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.max(1, Math.round(w * scale));
+  canvas.height = Math.max(1, Math.round(h * scale));
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
+  ctx.drawImage(src, 0, 0, canvas.width, canvas.height);
+  if (url) URL.revokeObjectURL(url);
+  const data = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const px = data.data;
+  const hist = new Uint32Array(256);
+  for (let i = 0; i < px.length; i += 4) {
+    const g = (px[i] * 299 + px[i + 1] * 587 + px[i + 2] * 114) / 1000 | 0;
+    px[i] = g; hist[g]++;
+  }
+  const total = canvas.width * canvas.height;
+  let acc = 0, lo = 0, hi = 255;
+  for (let v = 0; v < 256; v++) { acc += hist[v]; if (acc >= total * 0.02) { lo = v; break; } }
+  acc = 0;
+  for (let v = 255; v >= 0; v--) { acc += hist[v]; if (acc >= total * 0.02) { hi = v; break; } }
+  const range = Math.max(40, hi - lo);
+  for (let i = 0; i < px.length; i += 4) {
+    let g = ((px[i] - lo) * 255 / range) | 0;
+    g = g < 0 ? 0 : g > 255 ? 255 : g;
+    px[i] = px[i + 1] = px[i + 2] = g;
+  }
+  ctx.putImageData(data, 0, 0);
+  return canvas;
+}
+
+/* ICD-10-Kandidaten aus Freitext: OCR-Verwechslungen (O/0, I/1) korrigieren,
+   im Regelwerk bekannte Codes zuerst */
+function findIcdCandidates(text) {
+  const up = String(text || "").toUpperCase();
+  const re = /(?:^|[^A-Z0-9])([A-TV-Z])[\s]?([0-9OIL]{2})(?:[.,][\s]?([0-9A-Z]{1,2}))?(?![0-9A-Z])/g;
+  const gefunden = [];
+  let m;
+  while ((m = re.exec(up)) !== null) {
+    const ziff = m[2].replace(/O/g, "0").replace(/[IL]/g, "1");
+    if (!/^\d{2}$/.test(ziff)) continue;
+    let code = m[1] + ziff;
+    if (m[3]) code += "." + m[3].replace(/O/g, "0");
+    if (gefunden.indexOf(code) === -1) gefunden.push(code);
+  }
+  const bekannt = gefunden.filter(c => datenbank[normalizeIcd(c)]);
+  const unbekannt = gefunden.filter(c => !datenbank[normalizeIcd(c)]);
+  return bekannt.concat(unbekannt).slice(0, 8);
+}
+
+function renderIcdChips(liste) {
+  const box = document.getElementById("icdChips");
+  box.innerHTML = "";
+  if (!liste || liste.length < 2) return;
+  const lbl = document.createElement("span");
+  lbl.className = "lbl";
+  lbl.textContent = "Weitere Kandidaten:";
+  box.appendChild(lbl);
+  const aktuell = document.getElementById("icd10").value.trim().toUpperCase();
+  liste.forEach(code => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "chip" + (code === aktuell ? " on" : "");
+    b.textContent = code + (datenbank[normalizeIcd(code)] ? " ✓" : "");
+    b.addEventListener("click", () => {
+      document.getElementById("icd10").value = code;
+      const text = document.getElementById("ocrText").value + " " + document.getElementById("diagnose").value;
+      autoFillFromDiagnose(code, text);
+      renderIcdChips(liste);
+    });
+    box.appendChild(b);
+  });
+}
+
+function loadScript(src) {
+  return new Promise((resolve, reject) => {
+    const s = document.createElement("script");
+    s.src = src;
+    s.onload = resolve;
+    s.onerror = () => reject(new Error("Bibliothek konnte nicht geladen werden: " + src));
+    document.head.appendChild(s);
+  });
+}
+
+/* =====================================================================
+ * Abschnitt B: KBV-Barcode-Parser (PDF417 der Blankoformularbedruckung)
+ * Datenstruktur: KBV Technisches Handbuch BFB v4.71, Kap. 2 + 3.
+ * Felder sind TAB-getrennt. Muster 56 = Standardbarcode Typ 1 (15 Felder,
+ * nur Verwaltungsdaten). Muster 13 = Typ 3 mit ICD-Feldern ab Position 16.
+ * parser-start
+ * ===================================================================== */
+const KbvBarcode = (function () {
+  "use strict";
+
+  const STANDARD_FELDER = {
+    1: "Formularcode",
+    2: "Formularcodeergänzung",
+    3: "Versionsnummer",
+    4: "Nachname",
+    5: "Vorname",
+    6: "Geburtsdatum",
+    7: "Versicherungsschutz Ende",
+    8: "Kostenträgerkennung (IK)",
+    9: "Versicherten-ID",
+    10: "Versichertenart",
+    11: "Besondere Personengruppe",
+    12: "DMP-Kennzeichnung",
+    13: "Betriebsstättennummer (BSNR)",
+    14: "LANR",
+    15: "Ausstellungsdatum"
+  };
+  const DATUMS_FELDER = { 6: true, 7: true, 15: true };
+
+  const MUSTER13_FELDER = {
+    16: ["Heilmittelart", { 1: "Physiotherapie", 2: "Podologische Therapie", 3: "Stimm-, Sprech-, Sprach- und Schlucktherapie", 4: "Ergotherapie", 5: "Ernährungstherapie" }],
+    17: "ICD-10-GM-Code",
+    18: "Zweiter ICD-10-GM-Code",
+    19: "Diagnosegruppe",
+    20: "Leitsymptomatik",
+    21: "Patientenindividuelle Leitsymptomatik",
+    22: "Heilmittel",
+    23: "Behandlungseinheiten Heilmittel",
+    24: "Zweites Heilmittel",
+    25: "Behandlungseinheiten zweites Heilmittel",
+    26: "Drittes Heilmittel",
+    27: "Behandlungseinheiten drittes Heilmittel",
+    28: "Ergänzendes Heilmittel",
+    29: "Behandlungseinheiten ergänzendes Heilmittel",
+    30: "Therapiefrequenz",
+    31: "Therapiebericht",
+    32: "Hausbesuch",
+    33: "Dringlicher Behandlungsbedarf (14 Tage)"
+  };
+
+  const VERSICHERTENART = { 1: "Mitglied", 3: "Familienversicherte/r", 5: "Rentner/in" };
+  const PERSONENGRUPPE = { "00": "keine", "04": "Sozialhilfeempfänger/in (SGB XII)", "06": "BVG-Berechtigte/r", "07": "BVG-Berechtigte/r", "08": "BSHG-Berechtigte/r", "09": "Asylbewerber/in" };
+
+  function jjjjmmtt(v) {
+    if (!v) return "";
+    if (!/^\d{8}$/.test(v) || v.indexOf("0000") === 0) return "";
+    const j = v.slice(0, 4), m = v.slice(4, 6), t = v.slice(6, 8);
+    if (t === "00" && m === "00") return j;
+    if (t === "00") return m + "." + j;
+    return t + "." + m + "." + j;
+  }
+
+  function icdCodes(raw) {
+    const out = [];
+    const re = /\b([A-Z]\d{2}(?:[.]?[A-Z0-9]{1,4})?)\b/g;
+    let m;
+    while ((m = re.exec(String(raw || "").toUpperCase())) !== null) {
+      const code = m[1].replace(/([A-Z]\d{2})([A-Z0-9])/, "$1.$2");
+      if (out.indexOf(code) === -1) out.push(code);
+    }
+    return out;
+  }
+
+  function parseKbvBarcode(raw) {
+    const normalized = String(raw == null ? "" : raw).replace(/\r/g, "").replace(/\n+$/g, "").trim();
+    const teile = normalized.split("\t");
+    const formular = teile[0] && /^\d{1,2}$/.test(teile[0]) ? teile[0] : "";
+    const istKbv = formular !== "" && teile.length >= 10;
+
+    const felder = teile.map(function (wert, idx) {
+      const nr = idx + 1;
+      let label = STANDARD_FELDER[nr];
+      let optionen = null;
+      if (!label) {
+        if (formular === "13" && MUSTER13_FELDER[nr]) {
+          const def = MUSTER13_FELDER[nr];
+          if (Array.isArray(def)) { label = def[0]; optionen = def[1]; } else { label = def; }
+        } else {
+          label = "Feld " + nr + " (formspezifisch)";
+        }
+      }
+      let anzeige = wert;
+      if (DATUMS_FELDER[nr]) anzeige = jjjjmmtt(wert);
+      if (nr === 10 && wert && VERSICHERTENART[wert]) anzeige = wert + " = " + VERSICHERTENART[wert];
+      if (nr === 11 && wert && PERSONENGRUPPE[wert]) anzeige = wert + " = " + PERSONENGRUPPE[wert];
+      if (nr === 12 && wert === "00") anzeige = "00 = kein DMP";
+      if (optionen && wert && optionen[wert]) anzeige = wert + " = " + optionen[wert];
+      return { nr: nr, label: label, roh: wert, anzeige: anzeige };
+    });
+
+    return {
+      istKbv: istKbv,
+      formular: formular,
+      version: istKbv ? teile[2] || "" : "",
+      anzahlFelder: teile.length,
+      felder: felder,
+      icd10: icdCodes(normalized),
+      rohtext: normalized
+    };
+  }
+
+  return { parseKbvBarcode: parseKbvBarcode, jjjjmmtt: jjjjmmtt, icdCodes: icdCodes };
+})();
+/* parser-end */
+
+/* =====================================================================
+ * Abschnitt C: PDF417-Erkennung (Bild + Kamera)
+ *  - bevorzugt native BarcodeDetector-API (Chrome/Edge/Android)
+ *  - Fallback: ZXing (BrowserPDF417Reader) vom CDN
+ * ===================================================================== */
+const barcodePhoto = document.getElementById("barcodePhoto");
+const barcodePreview = document.getElementById("barcodePreview");
+const barcodeReadBtn = document.getElementById("barcodeReadBtn");
+const usePhotoBtn = document.getElementById("usePhotoBtn");
+const cameraBtn = document.getElementById("cameraBtn");
+const cameraStopBtn = document.getElementById("cameraStopBtn");
+const cameraVideo = document.getElementById("cameraVideo");
+const barcodeProgress = document.getElementById("barcodeProgress");
+const barcodeRaw = document.getElementById("barcodeRaw");
+const barcodeReparseBtn = document.getElementById("barcodeReparseBtn");
+const barcodeMsg = document.getElementById("barcodeMsg");
+const barcodeBadgeWrap = document.getElementById("barcodeBadgeWrap");
+const barcodeFields = document.getElementById("barcodeFields");
+
+let barcodeFile = null;
+let zxingLoading = null;
+let cameraStream = null;
+let cameraControls = null;
+let cameraTimer = null;
+let nativeDetector = null;
+
+function setBarcodeMsg(type, html) {
+  barcodeMsg.className = type;
+  barcodeMsg.innerHTML = html;
+}
+function escapeHtml(value) {
+  return String(value).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+
+async function nativePdf417Supported() {
+  if (!("BarcodeDetector" in window)) return false;
+  try {
+    const formats = await window.BarcodeDetector.getSupportedFormats();
+    if (!formats.includes("pdf417")) return false;
+    nativeDetector = new window.BarcodeDetector({ formats: ["pdf417"] });
+    return true;
+  } catch (e) { return false; }
+}
+
+function loadZxing() {
+  if (window.ZXing && window.ZXing.BrowserPDF417Reader) return Promise.resolve(window.ZXing);
+  if (zxingLoading) return zxingLoading;
+  zxingLoading = loadScript("libs/zxing.min.js")
+    .catch(() => loadScript("https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js"))
+    .catch(() => loadScript("https://unpkg.com/@zxing/library@0.21.3/umd/index.min.js"))
+    .then(() => {
+      if (!window.ZXing || !window.ZXing.BrowserPDF417Reader) throw new Error("ZXing unvollständig geladen");
+      return window.ZXing;
+    });
+  return zxingLoading;
+}
+
+function loadImageFromFile(file) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => resolve({ img, url });
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("Bild konnte nicht geladen werden")); };
+    img.src = url;
+  });
+}
+
+function imageToCanvas(img, maxDim) {
+  const scale = Math.min(1, maxDim / Math.max(img.naturalWidth || img.width, img.naturalHeight || img.height));
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.round((img.naturalWidth || img.width) * scale);
+  canvas.height = Math.round((img.naturalHeight || img.height) * scale);
+  canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+  return canvas;
+}
+
+async function decodeNative(file) {
+  if (!await nativePdf417Supported()) return "";
+  try {
+    const bitmap = await createImageBitmap(file);
+    const hits = await nativeDetector.detect(bitmap);
+    const hit = hits.find(h => h.format === "pdf417");
+    return hit && hit.rawValue ? hit.rawValue : "";
+  } catch (e) { return ""; }
+}
+
+async function decodeZxing(img) {
+  const ZXing = await loadZxing();
+  const hints = new Map([[ZXing.DecodeHintType.TRY_HARDER, true]]);
+  const reader = new ZXing.BrowserPDF417Reader(hints);
+  let letzterFehler = null;
+  for (const maxDim of [2000, 1400, 1000]) {
+    for (const rot of [0, 90]) {
+      try {
+        let canvas = imageToCanvas(img, maxDim);
+        if (rot) {
+          const c2 = document.createElement("canvas");
+          c2.width = canvas.height; c2.height = canvas.width;
+          const x = c2.getContext("2d");
+          x.translate(c2.width / 2, c2.height / 2);
+          x.rotate(Math.PI / 2);
+          x.drawImage(canvas, -canvas.width / 2, -canvas.height / 2);
+          canvas = c2;
+        }
+        const result = await reader.decodeFromImage(canvas);
+        if (result && result.text) return result.text;
+      } catch (e) { letzterFehler = e; }
+    }
+  }
+  throw letzterFehler || new Error("kein Barcode erkannt");
+}
+
+async function decodeBarcodeFile(file) {
+  if (!file || !file.type.startsWith("image/")) {
+    setBarcodeMsg("warn", "Bitte zuerst ein Bild mit dem PDF417-Barcode auswählen.");
+    return;
+  }
+  barcodeProgress.textContent = "Bild wird geladen …";
+  const { img, url } = await loadImageFromFile(file);
+  barcodePreview.src = url;
+  barcodePreview.style.display = "block";
+
+  let nativeText = "";
+  let zxingText = "";
+  barcodeProgress.textContent = "PDF417 wird gesucht …";
+
+  nativeText = await decodeNative(file);
+  if (nativeText) barcodeProgress.textContent = "Barcode mit der systemeigenen Erkennung gefunden. Ggf. erfolgt noch eine Zweitprüfung …";
+
+  try {
+    zxingText = await decodeZxing(img);
+  } catch (e) {
+    if (!nativeText) barcodeProgress.textContent = "ZXing-Fallback: " + (e && e.message ? e.message : "kein Barcode erkannt");
+  }
+
+  // Native Erkennung kann ISO-8859-Umlaute als Ersatzzeichen liefern; ZXing decodiert Byte-Modus als ISO-8859-1.
+  let text = nativeText || "";
+  if ((!text || text.indexOf("\uFFFD") !== -1) && zxingText) text = zxingText;
+
+  if (!text) {
+    setBarcodeMsg("invalid", "Es konnte kein PDF417-Barcode gelesen werden. Tipp: ganzen Barcode inkl. weißer Randzone fotografieren, scharf und gut beleuchtet, nicht spiegeln. Alternativ die Kamera-Scan-Funktion nutzen.");
+    barcodeProgress.textContent = "Kein PDF417 erkannt.";
+    return;
+  }
+  applyBarcodeResult(text);
+}
+
+/* ---------- Darstellung und Übernahme der erkannten Felder ---------- */
+function applyBarcodeResult(raw) {
+  barcodeRaw.value = raw;
+  const daten = KbvBarcode.parseKbvBarcode(raw);
+  barcodeFields.innerHTML = "";
+  barcodeBadgeWrap.innerHTML = "";
+
+  if (!daten.istKbv) {
+    const badge = document.createElement("span");
+    badge.className = "badge gray";
+    badge.textContent = "Fremd-Barcode (kein KBV-Formularbarcode)";
+    barcodeBadgeWrap.appendChild(badge);
+    setBarcodeMsg("info", "Der gelesene Code ist nicht als TAB-getrennter KBV-Formularbarcode aufgebaut. Die Rohdaten werden unten angezeigt; ggf. erkannte ICD-10-Codes werden trotzdem übernommen.");
+  } else {
+    const badge = document.createElement("span");
+    badge.className = "badge";
+    badge.textContent = "Muster " + daten.formular + " · Barcode-Version " + (daten.version || "?") + " · " + daten.anzahlFelder + " Felder";
+    barcodeBadgeWrap.appendChild(badge);
+  }
+
+  for (const feld of daten.felder) {
+    if (feld.roh === "" || feld.roh == null) continue;
+    const wrap = document.createElement("div");
+    wrap.className = "field";
+    const label = document.createElement("label");
+    label.textContent = feld.nr + " · " + feld.label;
+    const input = document.createElement("input");
+    input.readOnly = true;
+    input.value = feld.anzeige;
+    input.setAttribute("aria-label", feld.label);
+    wrap.appendChild(label);
+    wrap.appendChild(input);
+    barcodeFields.appendChild(wrap);
+  }
+
+  // ICD-10 automatisch übernehmen, falls im Barcode vorhanden (z. B. Muster 13)
+  if (daten.icd10.length) {
+    document.getElementById("icd10").value = daten.icd10[0];
+    renderIcdChips(daten.icd10);
+    const af = autoFillFromDiagnose(daten.icd10[0], daten.rohtext);
+    const weitere = daten.icd10.length > 1 ? " Weitere: " + daten.icd10.slice(1).map(escapeHtml).join(", ") : "";
+    const autoTeil = (af.gruppe || af.symptom) ? " Diagnosegruppe und Leitsymptomatik wurden in Abschnitt 4 automatisch gesetzt." : "";
+    setBarcodeMsg("valid", "<strong>Barcode gelesen.</strong> ICD-10-Code <strong>" + escapeHtml(daten.icd10[0]) + "</strong> wurde in Abschnitt 3 eingetragen." + weitere + escapeHtml(autoTeil));
+  } else if (daten.istKbv && daten.formular === "56") {
+    setBarcodeMsg("warn", "<strong>Barcode gelesen (Muster 56).</strong> Er enthält nur Verwaltungsdaten und keine ICD-10-Diagnose. Bitte die Diagnose weiterhin über die OCR-Texterkennung (Abschnitt 1) erfassen.");
+  } else if (daten.istKbv) {
+    setBarcodeMsg("valid", "<strong>Barcode gelesen (Muster " + escapeHtml(daten.formular) + ").</strong> Die Felder sind unten aufgelistet. Dieser Barcode enthält keinen ICD-10-Code.");
+  }
+  barcodeProgress.textContent = "Auswertung abgeschlossen.";
+  openView("check");
+}
+
+barcodePhoto.addEventListener("change", () => {
+  barcodeFile = barcodePhoto.files && barcodePhoto.files[0] ? barcodePhoto.files[0] : null;
+  barcodeReadBtn.disabled = !barcodeFile;
+  if (!barcodeFile) { barcodePreview.style.display = "none"; barcodePreview.removeAttribute("src"); return; }
+  barcodePreview.src = URL.createObjectURL(barcodeFile);
+  barcodePreview.style.display = "block";
+});
+
+barcodeReadBtn.addEventListener("click", () => decodeBarcodeFile(barcodeFile));
+usePhotoBtn.addEventListener("click", () => {
+  if (selectedFile) decodeBarcodeFile(selectedFile);
+  else setBarcodeMsg("warn", "Bitte zuerst in Abschnitt 1 ein Foto auswählen.");
+});
+barcodeReparseBtn.addEventListener("click", () => {
+  if (!barcodeRaw.value.trim()) { setBarcodeMsg("warn", "Keine Rohdaten vorhanden. Bitte zuerst einen Barcode einlesen."); return; }
+  applyBarcodeResult(barcodeRaw.value);
+});
+// TAB-Taste in der Rohdaten-Textarea als echtes Feldtrennzeichen einfügen
+barcodeRaw.addEventListener("keydown", (e) => {
+  if (e.key === "Tab") {
+    e.preventDefault();
+    const start = barcodeRaw.selectionStart, end = barcodeRaw.selectionEnd;
+    barcodeRaw.value = barcodeRaw.value.slice(0, start) + "\t" + barcodeRaw.value.slice(end);
+    barcodeRaw.selectionStart = barcodeRaw.selectionEnd = start + 1;
+  }
+});
+
+/* ---------- Kamera-Live-Scan ---------- */
+function stopCamera() {
+  if (cameraTimer) { clearInterval(cameraTimer); cameraTimer = null; }
+  if (cameraControls && typeof cameraControls.stop === "function") { try { cameraControls.stop(); } catch (e) {} cameraControls = null; }
+  if (cameraStream) { cameraStream.getTracks().forEach(t => t.stop()); cameraStream = null; }
+  cameraVideo.style.display = "none";
+  cameraBtn.style.display = "";
+  cameraStopBtn.style.display = "none";
+}
+
+async function startCamera() {
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    setBarcodeMsg("invalid", "Die Kamera-Funktion wird von diesem Browser nicht unterstützt. Bitte ein Foto des Barcodes hochladen.");
+    return;
+  }
+  try {
+    cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" }, width: { ideal: 1920 }, height: { ideal: 1080 } }, audio: false });
+    cameraVideo.srcObject = cameraStream;
+    await cameraVideo.play();
+    cameraVideo.style.display = "block";
+    cameraBtn.style.display = "none";
+    cameraStopBtn.style.display = "";
+    barcodeProgress.textContent = "Kamera aktiv – PDF417 vor die Linse halten …";
+
+    if (await nativePdf417Supported()) {
+      cameraTimer = setInterval(async () => {
+        try {
+          const hits = await nativeDetector.detect(cameraVideo);
+          const hit = hits.find(h => h.format === "pdf417");
+          if (hit && hit.rawValue) { stopCamera(); applyBarcodeResult(hit.rawValue); }
+        } catch (e) { /* Einzelbild noch nicht auswertbar */ }
+      }, 450);
+    } else {
+      const ZXing = await loadZxing();
+      const reader = new ZXing.BrowserPDF417Reader(new Map([[ZXing.DecodeHintType.TRY_HARDER, true]]));
+      cameraControls = await reader.decodeFromVideoDevice(undefined, cameraVideo, (result, err) => {
+        if (result && result.text) { stopCamera(); applyBarcodeResult(result.text); }
+      });
+    }
+  } catch (e) {
+    stopCamera();
+    setBarcodeMsg("invalid", "Kamerazugriff nicht möglich (Hinweis: nur über HTTPS und mit erteilter Berechtigung). Bitte stattdessen ein Barcode-Foto hochladen.");
+  }
+}
+cameraBtn.addEventListener("click", startCamera);
+cameraStopBtn.addEventListener("click", stopCamera);
+window.addEventListener("pagehide", stopCamera);
+
+/* =====================================================================
+ * Abschnitt C2: Automatisches Ausfüllen von Diagnosegruppe und
+ * Leitsymptomatik. Erstbefüllung über die ICD-Beispieldatenbank;
+ * enthält der Verordnungstext passende Stichworte, wird zwischen den
+ * mehreren hinterlegten Leitsymptomatiken gezielt gewählt. Liefert die
+ * ICD keinen Treffer, greift ein reiner Stichwort-Fallback auf den Text.
+ * ===================================================================== */
+const GRUPPEN_STICHWORTE = [
+  { value: "HERZ",   words: ["herz", "khk", "kardial", "koronar", "ischäm", "ischaem", "herzgruppe", "herzinsuffizienz"] },
+  { value: "NEURO",  words: ["parkinson", "sklerose", "schlaganfall", "apoplex", "neurolog", "parese", "epilep", "neuropath", "lähm", "lahm"] },
+  { value: "INNERE", words: ["diabetes", "hyperton", "bluthochdruck", "stoffwechsel", "adipositas", "übergewicht", "uebergewicht", "copd", "asthma", "lunge"] },
+  { value: "ORTHO",  words: ["rücken", "ruecken", "bandscheibe", "arthrose", "knie", "hüfte", "huefte", "wirbel", "gelenk", "orthopäd", "orthopaed", "muskel", "skelett", "gon", "cox"] }
+];
+const SYMPTOM_STICHWORTE = {
+  "Bewegungseinschränkung": ["bewegungseinschränkung", "bewegungseinschraenkung", "beweglichkeit", "steifigkeit", "bewegungsumfang", "bewegung eingeschränkt"],
+  "Kraftdefizit": ["kraftdefizit", "kraftlos", "muskel", "dysbalance", "kraftausdauer", "muskulär", "muskulaer"],
+  "Schmerzen": ["schmerz"],
+  "Koordination": ["koordination", "gleichgewicht", "sturz", "unsicherer gang", "gangunsicherheit"],
+  "Ausdauer": ["ausdauer", "belastbarkeit", "belastungsgrenze", "belastungsintoleranz", "belastung"],
+  "Stoffwechsel": ["stoffwechsel", "diabetes", "zuckerkrank", "übergewicht", "uebergewicht", "adipositas"]
+};
+
+function normalizeIcd(raw) {
+  const m = String(raw || "").toUpperCase().match(/[A-Z]\d{2}/);
+  return m ? m[0] : "";
+}
+
+function scoreStichworte(text, words) {
+  const t = " " + String(text || "").toLowerCase() + " ";
+  let score = 0;
+  for (const w of words) if (t.indexOf(w) !== -1) score++;
+  return score;
+}
+
+function pickGroupFromText(text) {
+  let best = "";
+  let bestScore = 0;
+  for (const g of GRUPPEN_STICHWORTE) {
+    const s = scoreStichworte(text, g.words);
+    if (s > bestScore) { bestScore = s; best = g.value; }
+  }
+  return best;
+}
+
+function pickSymptomFromText(text, allowed) {
+  let best = "";
+  let bestScore = 0;
+  for (const name of allowed) {
+    const s = scoreStichworte(text, SYMPTOM_STICHWORTE[name] || []);
+    if (s > bestScore) { bestScore = s; best = name; }
+  }
+  return best;
+}
+
+function showAutoInfo(text, typ) {
+  const el = document.getElementById("autoInfo");
+  el.className = typ || "";
+  el.textContent = text;
+}
+
+function flashAuto(elements) {
+  for (const el of elements) {
+    if (!el) continue;
+    el.classList.remove("auto-flash");
+    void el.offsetWidth; // Animation neu starten
+    el.classList.add("auto-flash");
+    setTimeout(() => el.classList.remove("auto-flash"), 1400);
+  }
+}
+
+function autoFillFromDiagnose(icdRaw, fullText) {
+  const icd = normalizeIcd(icdRaw);
+  const rule = icd ? datenbank[icd] : null;
+  const gruppeSel = document.getElementById("gruppe");
+  const symptomSel = document.getElementById("symptom");
+  const info = { icd: icd, gruppe: "", symptom: "", quelle: "", meldung: "" };
+
+  if (rule) {
+    gruppeSel.value = rule.gruppe;
+    const perText = pickSymptomFromText(fullText, rule.symptome);
+    const symptom = perText || rule.symptome[0];
+    symptomSel.value = symptom;
+    info.gruppe = rule.gruppe;
+    info.symptom = symptom;
+    info.quelle = perText ? "ICD + Stichwort" : "ICD-Datenbank";
+    info.meldung = "Automatisch ausgefüllt anhand ICD " + icd + " (" + rule.name + "): " + groupName(rule.gruppe) + " – " + symptom +
+      (perText ? " (Leitsymptomatik per Stichwort aus dem Verordnungstext gewählt)." : " (erste hinterlegte Leitsymptomatik).") + " Bitte prüfen.";
+    showAutoInfo(info.meldung, "ok");
+  } else {
+    const alleSymptome = Array.from(symptomSel.options).map(o => o.value).filter(Boolean);
+    const g = pickGroupFromText(fullText);
+    const s = pickSymptomFromText(fullText, alleSymptome);
+    if (g) gruppeSel.value = g;
+    if (s) symptomSel.value = s;
+    info.gruppe = gruppeSel.value;
+    info.symptom = symptomSel.value;
+    info.quelle = "Stichwort-Fallback";
+    if (g || s) {
+      info.meldung = "Für " + (icd || "den erkannten ICD-Code") + " gibt es keinen Beispieldatenbank-Eintrag. Diagnosegruppe/Leitsymptomatik wurden per Stichwortvergleich vorausgefüllt – bitte unbedingt manuell prüfen.";
+      showAutoInfo(info.meldung, "warn");
+    } else {
+      info.meldung = "Für " + (icd || "den erkannten ICD-Code") + " konnte keine automatische Zuordnung gefunden werden. Bitte Diagnosegruppe und Leitsymptomatik manuell wählen.";
+      showAutoInfo(info.meldung, "warn");
+    }
+  }
+  flashAuto([gruppeSel, symptomSel]);
+  pruefeTrainerEignung();
+  return info;
+}
+
+// Bei manueller Änderung des ICD-Feldes neu befüllen
+document.getElementById("icd10").addEventListener("change", () => {
+  const icd = document.getElementById("icd10").value;
+  if (!icd.trim()) return;
+  const text = document.getElementById("ocrText").value + " " + document.getElementById("diagnose").value;
+  autoFillFromDiagnose(icd, text);
+});
+
+// Manueller Wiederholungs-Button in Abschnitt 4
+document.getElementById("autoBtn").addEventListener("click", () => {
+  const icd = document.getElementById("icd10").value;
+  const text = document.getElementById("ocrText").value + " " + document.getElementById("diagnose").value;
+  if (!icd.trim() && !text.trim()) {
+    showAutoInfo("Bitte zuerst einen ICD-10-Code oder erkannten Verordnungstext erfassen.", "warn");
+    return;
+  }
+  autoFillFromDiagnose(icd, text);
+});
+
+/* =====================================================================
+ * Abschnitt E1: Aktualisierbares ICD-Regelwerk
+ * - Basisdaten sind integriert (BASIS_REGELN)
+ * - Update lädt eine JSON-Datei von einer konfigurierbaren URL
+ * - erfolgreich geladene Regelwerke werden lokal gecacht (localStorage)
+ * ===================================================================== */
+const STORAGE_REGELN = "rehasport_icd_regeln_v1";
+const STORAGE_REGEL_META = "rehasport_icd_regel_meta_v1";
+const STORAGE_TRAINER = "rehasport_trainer_v1";
+const ERLAUBTE_GRUPPEN = ["ORTHO", "INNERE", "HERZ", "NEURO"];
+const GRUPPEN_LABEL = { ORTHO: "Orthopädie", INNERE: "Innere Medizin", HERZ: "Herzsport / Kardiologie", NEURO: "Neurologie" };
+const SYMPTOM_WERTE = ["Bewegungseinschränkung", "Kraftdefizit", "Schmerzen", "Koordination", "Ausdauer", "Stoffwechsel"];
+
+function safeGet(key) {
+  try { const v = window.localStorage.getItem(key); return v == null ? null : JSON.parse(v); }
+  catch (e) { return null; }
+}
+function safeSet(key, value) {
+  try { window.localStorage.setItem(key, JSON.stringify(value)); return true; }
+  catch (e) { return false; }
+}
+function safeRemove(key) {
+  try { window.localStorage.removeItem(key); } catch (e) {}
+}
+
+function validateRuleset(obj) {
+  if (!obj || typeof obj !== "object" || !obj.regeln || typeof obj.regeln !== "object") {
+    return { ok: false, error: "JSON-Struktur ungültig: Objekt mit Feld 'regeln' erwartet." };
+  }
+  const regeln = {};
+  let count = 0;
+  for (const icd of Object.keys(obj.regeln)) {
+    const r = obj.regeln[icd];
+    const code = String(icd).toUpperCase();
+    if (!/^[A-Z]\d{2}([.][A-Z0-9]{1,4})?$/.test(code)) { return { ok: false, error: "Ungültiger ICD-Schlüssel: " + icd }; }
+    if (!r || ERLAUBTE_GRUPPEN.indexOf(r.gruppe) === -1) { return { ok: false, error: "Ungültige oder fehlende Diagnosegruppe bei " + code }; }
+    if (!Array.isArray(r.symptome) || !r.symptome.length || r.symptome.some(s => SYMPTOM_WERTE.indexOf(s) === -1)) {
+      return { ok: false, error: "Ungültige Leitsymptomatik bei " + code };
+    }
+    regeln[code] = { name: String(r.name || ""), gruppe: r.gruppe, symptome: r.symptome.slice() };
+    if (Array.isArray(r.zusatz)) {
+      const z = r.zusatz.filter(x => x === "HI");
+      if (z.length) regeln[code].zusatz = z;
+    }
+    count++;
+  }
+  if (!count) return { ok: false, error: "Das Regelwerk enthält keine Einträge." };
+  const meta = {
+    version: String(obj.version || "unbenannt"),
+    stand: String(obj.stand || "unbekannt"),
+    quelle: String(obj.quelle || "manueller Import")
+  };
+  return { ok: true, regeln: regeln, meta: meta, count: count };
+}
+
+function setRegelStatus(text, typ) {
+  const el = document.getElementById("regelStatus");
+  el.className = typ || "";
+  el.textContent = text;
+}
+
+function renderRegelInfo() {
+  document.getElementById("regelVersion").textContent = "Version " + regelMeta.version;
+  const anzahl = Object.keys(datenbank).length;
+  document.getElementById("regelMeta").textContent =
+    "Stand: " + regelMeta.stand + " · Quelle: " + regelMeta.quelle + " · " + anzahl + " ICD-Codes hinterlegt";
+  const appbarRegel = document.getElementById("appbarRegel");
+  if (appbarRegel) appbarRegel.textContent = "Regelwerk " + regelMeta.version + " · " + anzahl + " Codes";
+}
+
+function applyRuleset(regeln, meta) {
+  datenbank = regeln;
+  regelMeta = meta;
+  safeSet(STORAGE_REGELN, regeln);
+  safeSet(STORAGE_REGEL_META, meta);
+  renderRegelInfo();
+  // bestehende Auswahl gegen den neuen Stand erneut prüfen
+  const icd = document.getElementById("icd10").value;
+  if (icd.trim()) {
+    const text = document.getElementById("ocrText").value + " " + document.getElementById("diagnose").value;
+    autoFillFromDiagnose(icd, text);
+  }
+  pruefeTrainerEignung();
+}
+
+async function updateRegelwerk() {
+  const btn = document.getElementById("updateRegelBtn");
+  const url = document.getElementById("regelUrl").value.trim();
+  if (!url) { setRegelStatus("Bitte eine URL eintragen.", "err"); return; }
+  btn.disabled = true;
+  setRegelStatus("Regelwerk wird von " + url + " geladen …", "");
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 9000);
+    const res = await fetch(url, { signal: controller.signal, cache: "no-store" });
+    clearTimeout(timer);
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const obj = await res.json();
+    const v = validateRuleset(obj);
+    if (!v.ok) { setRegelStatus("Update abgelehnt: " + v.error + " – bisheriges Regelwerk bleibt aktiv.", "err"); return; }
+    safeSet(STORAGE_REGELN, v.regeln);
+    safeSet(STORAGE_REGEL_META, Object.assign({}, v.meta, { geladenAm: new Date().toISOString() }));
+    applyRuleset(v.regeln, Object.assign({}, v.meta, { geladenAm: new Date().toISOString() }));
+    setRegelStatus("Update erfolgreich: Version " + v.meta.version + " (" + v.count + " ICD-Codes) geladen und lokal gespeichert.", "ok");
+    showToast("Regelwerk " + v.meta.version + " aktiv", "ok");
+  } catch (e) {
+    setRegelStatus("Update fehlgeschlagen (" + (e && e.message ? e.message : "Netzwerkfehler") +
+      "). Das aktuell aktive Regelwerk bleibt erhalten. Hinweis: Beim direkten Öffnen der HTML-Datei (file://) blockieren viele Browser den Abruf – bitte über einen Webserver aufrufen.", "warn");
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function resetRegelwerk() {
+  safeRemove(STORAGE_REGELN);
+  safeRemove(STORAGE_REGEL_META);
+  datenbank = JSON.parse(JSON.stringify(BASIS_REGELN));
+  regelMeta = Object.assign({}, BASIS_META);
+  renderRegelInfo();
+  const icd = document.getElementById("icd10").value;
+  if (icd.trim()) autoFillFromDiagnose(icd, document.getElementById("ocrText").value + " " + document.getElementById("diagnose").value);
+  pruefeTrainerEignung();
+  setRegelStatus("Auf das integrierte Basis-Regelwerk zurückgesetzt.", "ok");
+  showToast("Basis-Regelwerk wiederhergestellt", "warn");
+}
+
+document.getElementById("updateRegelBtn").addEventListener("click", updateRegelwerk);
+document.getElementById("resetRegelBtn").addEventListener("click", resetRegelwerk);
+
+/* =====================================================================
+ * Abschnitt E2: Trainer/innen mit Qualifikationen (localStorage)
+ * ===================================================================== */
+let trainerListe = Array.isArray(safeGet(STORAGE_TRAINER)) ? safeGet(STORAGE_TRAINER) : [];
+
+function qualLabels(t) {
+  const labels = (t.qualifikationen || []).map(q => GRUPPEN_LABEL[q] || q);
+  if (t.herzinsuffizienz) labels.push("Herzinsuffizienz-Gruppe");
+  return labels;
+}
+
+function renderTrainer() {
+  const list = document.getElementById("trainerList");
+  list.innerHTML = "";
+  document.getElementById("trainerCount").textContent = String(trainerListe.length);
+  if (!trainerListe.length) {
+    const p = document.createElement("p");
+    p.className = "muted-empty";
+    p.textContent = "Noch keine Trainer/innen eingetragen.";
+    list.appendChild(p);
+    return;
+  }
+  trainerListe.forEach(t => {
+    const row = document.createElement("div");
+    row.className = "trainer-row";
+    const links = document.createElement("div");
+    const name = document.createElement("div");
+    name.className = "t-name";
+    name.textContent = t.name;
+    const quals = document.createElement("div");
+    quals.className = "t-quals";
+    const qLabels = qualLabels(t);
+    quals.innerHTML = qLabels.length
+      ? qLabels.map(escapeHtml).join(" &middot; ")
+      : '<em style="color:#842029">Keine Qualifikation hinterlegt</em>';
+    if (t.notiz) {
+      const n = document.createElement("div");
+      n.className = "t-quals";
+      n.textContent = t.notiz;
+      quals.appendChild(n);
+    }
+    links.appendChild(name);
+    links.appendChild(quals);
+
+    const btns = document.createElement("div");
+    btns.className = "mini-btns";
+    const edit = document.createElement("button");
+    edit.type = "button";
+    edit.className = "ghost";
+    edit.textContent = "Bearbeiten";
+    edit.addEventListener("click", () => trainerInFormular(t));
+    const del = document.createElement("button");
+    del.type = "button";
+    del.className = "warnbtn";
+    del.textContent = "Löschen";
+    del.addEventListener("click", () => {
+      if (!window.confirm('Trainer/in "' + t.name + '" wirklich löschen?')) return;
+      trainerListe = trainerListe.filter(x => x.id !== t.id);
+      persistTrainer();
+      renderTrainer();
+      pruefeTrainerEignung();
+    });
+    btns.appendChild(edit);
+    btns.appendChild(del);
+
+    row.appendChild(links);
+    row.appendChild(btns);
+    list.appendChild(row);
+  });
+}
+
+function persistTrainer() {
+  safeSet(STORAGE_TRAINER, trainerListe);
+}
+
+function leseTrainerFormular() {
+  const name = document.getElementById("trainerName").value.trim();
+  const qualifikationen = Array.from(document.querySelectorAll(".qual:checked")).map(c => c.value);
+  return {
+    name: name,
+    qualifikationen: qualifikationen,
+    herzinsuffizienz: document.getElementById("qualHI").checked,
+    notiz: document.getElementById("trainerNotiz").value.trim()
+  };
+}
+
+function leereTrainerFormular() {
+  document.getElementById("trainerName").value = "";
+  document.getElementById("trainerNotiz").value = "";
+  document.getElementById("trainerEditId").value = "";
+  document.querySelectorAll(".qual").forEach(c => { c.checked = false; });
+  document.getElementById("qualHI").checked = false;
+  document.getElementById("trainerCancelBtn").style.display = "none";
+  document.getElementById("trainerSaveBtn").textContent = "Trainer/in speichern";
+}
+
+function trainerInFormular(t) {
+  document.getElementById("trainerName").value = t.name;
+  document.getElementById("trainerNotiz").value = t.notiz || "";
+  document.getElementById("trainerEditId").value = t.id;
+  document.querySelectorAll(".qual").forEach(c => { c.checked = (t.qualifikationen || []).indexOf(c.value) !== -1; });
+  document.getElementById("qualHI").checked = !!t.herzinsuffizienz;
+  document.getElementById("trainerCancelBtn").style.display = "";
+  document.getElementById("trainerSaveBtn").textContent = "Änderungen speichern";
+  openView("settings");
+  document.getElementById("trainerName").focus();
+}
+
+document.getElementById("trainerSaveBtn").addEventListener("click", () => {
+  const daten = leseTrainerFormular();
+  if (!daten.name) { window.alert("Bitte mindestens einen Namen eintragen."); return; }
+  const editId = document.getElementById("trainerEditId").value;
+  if (editId) {
+    const idx = trainerListe.findIndex(t => t.id === editId);
+    if (idx !== -1) trainerListe[idx] = Object.assign({}, trainerListe[idx], daten);
+    showToast("Änderungen gespeichert.", "ok");
+  } else {
+    trainerListe.push(Object.assign({ id: "t" + Date.now() + Math.floor(Math.random() * 1000) }, daten));
+    showToast("Trainer/in gespeichert.", "ok");
+  }
+  persistTrainer();
+  renderTrainer();
+  leereTrainerFormular();
+  pruefeTrainerEignung();
+});
+document.getElementById("trainerCancelBtn").addEventListener("click", leereTrainerFormular);
+
+/* =====================================================================
+ * Abschnitt E3: Eignungsprüfung – „pfeift", wenn keine passende
+ * Qualifikation für die benötigte Diagnosegruppe vorhanden ist.
+ * ===================================================================== */
+function pruefeTrainerEignung() {
+  const box = document.getElementById("eignung");
+  const gruppe = document.getElementById("gruppe").value;
+  if (!gruppe) { box.className = ""; box.innerHTML = ""; return null; }
+
+  const icd = normalizeIcd(document.getElementById("icd10").value);
+  const rule = icd ? datenbank[icd] : null;
+  const braucheHI = !!(rule && rule.gruppe === gruppe && Array.isArray(rule.zusatz) && rule.zusatz.indexOf("HI") !== -1);
+
+  const passend = trainerListe.filter(t => (t.qualifikationen || []).indexOf(gruppe) !== -1 && (!braucheHI || t.herzinsuffizienz));
+  const benoetigt = (GRUPPEN_LABEL[gruppe] || gruppe) + (braucheHI ? " + Zusatzqualifikation Herzinsuffizienz-Gruppe" : "");
+
+  if (!trainerListe.length) {
+    box.className = "bad";
+    box.innerHTML = "<strong>⚠ Eignung nicht prüfbar:</strong> Es sind noch keine Trainer/innen eingetragen. Bitte in den Einstellungen (Abschnitt 5.2) mindestens eine Person mit der Qualifikation <strong>" +
+      escapeHtml(benoetigt) + "</strong> anlegen.";
+  } else if (!passend.length) {
+    box.className = "bad";
+    box.innerHTML = "<strong>⚠ Keine Eignung gegeben:</strong> Keine/r der " + trainerListe.length +
+      " eingetragenen Trainer/innen besitzt die benötigte Qualifikation <strong>" + escapeHtml(benoetigt) +
+      "</strong>. Die Verordnung kann personell nicht abgedeckt werden – bitte nachqualifizieren oder externes Personal einsetzen.";
+  } else {
+    box.className = "ok";
+    box.innerHTML = "<strong>✔ Eignung gegeben:</strong> " + passend.length + " Trainer/innen mit Qualifikation <strong>" + escapeHtml(benoetigt) + "</strong> verfügbar.<ul>" +
+      passend.map(t => "<li>" + escapeHtml(t.name) + (t.notiz ? " <span class='t-quals'>(" + escapeHtml(t.notiz) + ")</span>" : "") + "</li>").join("") + "</ul>";
+  }
+  return { gruppe: gruppe, passend: passend };
+}
+
+document.getElementById("gruppe").addEventListener("change", pruefeTrainerEignung);
+
+/* =====================================================================
+ * Abschnitt D: Plausibilitätsprüfung (um Eignungshinweis ergänzt)
+ * ===================================================================== */
+document.getElementById("checkBtn").addEventListener("click", () => {
+  const raw = document.getElementById("icd10").value.trim().toUpperCase();
+  const icd = raw.match(/[A-Z]\d{2}/)?.[0] || "";
+  const gruppe = document.getElementById("gruppe").value;
+  const symptom = document.getElementById("symptom").value;
+  const result = document.getElementById("result");
+
+  if (!icd || !gruppe || !symptom) {
+    showResult("warn", "Bitte ICD-10-Code, Diagnosegruppe und Leitsymptomatik kontrollieren bzw. auswählen.");
+    return;
+  }
+  const rule = datenbank[icd];
+  if (!rule) {
+    showResult("warn", `Der Code ${escapeHtml(icd)} ist im aktiven Regelwerk (Version ${escapeHtml(regelMeta.version)}) nicht hinterlegt. Das bedeutet nicht automatisch, dass die Verordnung unzulässig ist – ggf. Regelwerk in den Einstellungen aktualisieren.`);
+    pruefeTrainerEignung();
+    return;
+  }
+  const errors = [];
+  if (rule.gruppe !== gruppe) errors.push(`Hinterlegte Gruppe für ${escapeHtml(icd)} (${escapeHtml(rule.name)}): ${escapeHtml(groupName(rule.gruppe))}.`);
+  if (!rule.symptome.includes(symptom)) errors.push(`Im Regelwerk hinterlegte Leitsymptomatik: ${rule.symptome.map(escapeHtml).join(", ")}.`);
+  const eignung = pruefeTrainerEignung();
+  const eignungsZeile = eignung && eignung.passend.length
+    ? `<br>Personal: <strong>${eignung.passend.length} passend qualifizierte/r Trainer/in</strong> verfügbar.`
+    : `<br><strong style="color:#842029">Personal: Keine passende Trainer-Qualifikation vorhanden – Eignung nicht gegeben!</strong>`;
+  if (errors.length) showResult("invalid", `<strong>Bitte prüfen</strong><ul><li>${errors.join("</li><li>")}</li></ul>Diese vereinfachte Prüfung ist nicht verbindlich.${eignungsZeile}`);
+  else showResult("valid", `<strong>Keine Abweichung im aktiven Regelwerk gefunden.</strong><br>${escapeHtml(rule.name)} (${escapeHtml(raw)}): Die Auswahl passt zu den hinterlegten Daten (Regelwerk ${escapeHtml(regelMeta.version)}). Das ist keine verbindliche Gültigkeitsbestätigung.${eignungsZeile}`);
+});
+
+function showResult(type, html) {
+  const el = document.getElementById("result");
+  el.className = type;
+  el.innerHTML = html;
+}
+function groupName(key) {
+  return ({ORTHO:"Orthopädie",INNERE:"Innere Medizin",HERZ:"Herzsport / Kardiologie",NEURO:"Neurologie"})[key] || key;
+}
+
+/* =====================================================================
+ * Abschnitt F: App-Navigation (Ansichten, Segment-Umschalter, Toasts)
+ * ===================================================================== */
+function openView(name, fromPop) {
+  const views = document.querySelectorAll(".view");
+  const buttons = document.querySelectorAll(".navbtn");
+  let aktiv = false;
+  views.forEach(v => {
+    const ist = v.getAttribute("data-view") === name;
+    v.classList.toggle("active", ist);
+    if (ist) { v.hidden = false; aktiv = true; } else { v.hidden = true; }
+  });
+  buttons.forEach(b => b.classList.toggle("active", b.getAttribute("data-nav") === name));
+  if (name !== "scan" && typeof stopCamera === "function") stopCamera();
+  if (aktiv) window.scrollTo({ top: 0, behavior: "smooth" });
+  if (aktiv && !fromPop && !(history.state && history.state.v === name)) {
+    try { history.pushState({ v: name }, ""); } catch (e) {}
+  }
+}
+
+document.querySelectorAll(".navbtn").forEach(btn => {
+  btn.addEventListener("click", () => openView(btn.getAttribute("data-nav")));
+});
+
+function switchSegment(which) {
+  const ocr = document.getElementById("seg-ocr");
+  const bc = document.getElementById("seg-barcode");
+  const bOcr = document.getElementById("segOcrBtn");
+  const bBc = document.getElementById("segBarcodeBtn");
+  const istOcr = which === "ocr";
+  ocr.hidden = !istOcr;
+  bc.hidden = istOcr;
+  bOcr.classList.toggle("active", istOcr);
+  bBc.classList.toggle("active", !istOcr);
+  bOcr.setAttribute("aria-selected", String(istOcr));
+  bBc.setAttribute("aria-selected", String(!istOcr));
+}
+document.getElementById("segOcrBtn").addEventListener("click", () => switchSegment("ocr"));
+document.getElementById("segBarcodeBtn").addEventListener("click", () => switchSegment("barcode"));
+
+function showToast(text, typ) {
+  const wrap = document.getElementById("toastWrap");
+  if (!wrap) return;
+  const toast = document.createElement("div");
+  toast.className = "toast " + (typ || "");
+  toast.textContent = text;
+  wrap.appendChild(toast);
+  setTimeout(() => {
+    toast.classList.add("out");
+    setTimeout(() => toast.remove(), 320);
+  }, 2600);
+}
+
+/* =====================================================================
+ * Abschnitt G: Neue Verordnung (Datenschutz), Ergebnis kopieren, Sicherung
+ * ===================================================================== */
+function resetCase() {
+  try { stopCamera(); } catch (e) {}
+  ["photo", "barcodePhoto"].forEach(id => { const el = document.getElementById(id); if (el) el.value = ""; });
+  [preview, barcodePreview].forEach(img => {
+    if (img.src && img.src.indexOf("blob:") === 0) { try { URL.revokeObjectURL(img.src); } catch (e) {} }
+    img.style.display = "none"; img.removeAttribute("src");
+  });
+  selectedFile = null; barcodeFile = null;
+  readBtn.disabled = true; barcodeReadBtn.disabled = true;
+  progress.textContent = ""; barcodeProgress.textContent = "";
+  ["icd10", "diagnose", "ocrText", "barcodeRaw"].forEach(id => { document.getElementById(id).value = ""; });
+  document.getElementById("gruppe").value = "";
+  document.getElementById("symptom").value = "";
+  barcodeFields.innerHTML = ""; barcodeBadgeWrap.innerHTML = "";
+  barcodeMsg.className = ""; barcodeMsg.innerHTML = "";
+  ["autoInfo", "result", "eignung"].forEach(id => { const el = document.getElementById(id); el.className = ""; el.innerHTML = ""; el.textContent = ""; });
+  document.getElementById("icdChips").innerHTML = "";
+  switchSegment("ocr");
+  openView("scan");
+  showToast("Alle Eingaben gelöscht – bereit für die nächste Verordnung.", "ok");
+}
+document.getElementById("resetAllBtn").addEventListener("click", resetCase);
+document.getElementById("newCaseBtn").addEventListener("click", resetCase);
+
+async function kopiereText(text) {
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) { await navigator.clipboard.writeText(text); return true; }
+  } catch (e) {}
+  try {
+    const ta = document.createElement("textarea");
+    ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.appendChild(ta); ta.select();
+    const ok = document.execCommand("copy");
+    ta.remove();
+    return ok;
+  } catch (e) { return false; }
+}
+
+document.getElementById("copyResultBtn").addEventListener("click", async () => {
+  const icd = document.getElementById("icd10").value.trim();
+  const g = document.getElementById("gruppe").value;
+  const sy = document.getElementById("symptom").value;
+  if (!icd && !g && !sy) { showToast("Noch nichts zum Kopieren vorhanden.", "warn"); return; }
+  const res = document.getElementById("result").innerText.trim();
+  const eig = document.getElementById("eignung").innerText.trim();
+  const zeilen = [
+    "RehaSport Check – Ergebnis",
+    "ICD-10: " + (icd || "–"),
+    "Diagnosegruppe: " + (g ? groupName(g) : "–"),
+    "Leitsymptomatik: " + (sy || "–"),
+    "Regelwerk: " + regelMeta.version + " (" + regelMeta.stand + ")"
+  ];
+  if (res) zeilen.push("Plausibilität: " + res.replace(/\s+/g, " "));
+  if (eig) zeilen.push("Trainer-Eignung: " + eig.replace(/\s+/g, " "));
+  zeilen.push("Hinweis: nicht verbindlich, Angaben mit dem Original abgleichen.");
+  const ok = await kopiereText(zeilen.join("\n"));
+  showToast(ok ? "Ergebnis kopiert." : "Kopieren nicht möglich.", ok ? "ok" : "err");
+});
+
+function setBackupStatus(text, typ) {
+  const el = document.getElementById("backupStatus");
+  el.className = "hint " + (typ || "");
+  el.textContent = text;
+}
+
+document.getElementById("backupCopyBtn").addEventListener("click", async () => {
+  if (!trainerListe.length) { setBackupStatus("Es sind noch keine Trainer/innen gespeichert.", "warn"); return; }
+  const json = JSON.stringify({ typ: "rehasport-trainer", version: 1, trainer: trainerListe });
+  const ok = await kopiereText(json);
+  const ta = document.getElementById("backupText");
+  ta.value = json;
+  setBackupStatus(ok ? "Sicherung in die Zwischenablage kopiert (" + trainerListe.length + " Trainer/innen)." : "Automatisches Kopieren nicht möglich – Text unten markieren und manuell kopieren.", ok ? "ok" : "warn");
+});
+
+document.getElementById("backupImportBtn").addEventListener("click", () => {
+  const raw = document.getElementById("backupText").value.trim();
+  if (!raw) { setBackupStatus("Bitte zuerst die Sicherung in das Feld einfügen.", "warn"); return; }
+  let obj;
+  try { obj = JSON.parse(raw); } catch (e) { setBackupStatus("Das ist keine gültige Sicherung (kein lesbares JSON).", "err"); return; }
+  const liste = obj && obj.typ === "rehasport-trainer" && Array.isArray(obj.trainer) ? obj.trainer : null;
+  if (!liste) { setBackupStatus("Die Sicherung hat nicht das erwartete Format.", "err"); return; }
+  let neu = 0, aktualisiert = 0, uebersprungen = 0;
+  liste.forEach(t => {
+    if (!t || typeof t.name !== "string" || !t.name.trim()) { uebersprungen++; return; }
+    const eintrag = {
+      id: typeof t.id === "string" && t.id ? t.id : "t" + Date.now() + Math.floor(Math.random() * 100000),
+      name: t.name.trim().slice(0, 120),
+      qualifikationen: (Array.isArray(t.qualifikationen) ? t.qualifikationen : []).filter(q => ERLAUBTE_GRUPPEN.indexOf(q) !== -1),
+      herzinsuffizienz: !!t.herzinsuffizienz,
+      notiz: typeof t.notiz === "string" ? t.notiz.slice(0, 200) : ""
+    };
+    const idx = trainerListe.findIndex(x => x.id === eintrag.id);
+    if (idx !== -1) { trainerListe[idx] = eintrag; aktualisiert++; }
+    else { trainerListe.push(eintrag); neu++; }
+  });
+  persistTrainer();
+  renderTrainer();
+  pruefeTrainerEignung();
+  document.getElementById("backupText").value = "";
+  setBackupStatus("Eingelesen: " + neu + " neu, " + aktualisiert + " aktualisiert" + (uebersprungen ? ", " + uebersprungen + " übersprungen" : "") + ".", "ok");
+  showToast("Sicherung eingelesen", "ok");
+});
+
+window.addEventListener("popstate", (e) => {
+  const v = e.state && e.state.v ? e.state.v : "scan";
+  openView(v, true);
+});
+
+/* =====================================================================
+ * Initialisierung
+ * ===================================================================== */
+(function init() {
+  // 1) zwischengespeichertes aktualisiertes Regelwerk übernehmen
+  const gecachteRegeln = safeGet(STORAGE_REGELN);
+  const gecachteMeta = safeGet(STORAGE_REGEL_META);
+  if (gecachteRegeln && validateRuleset({ regeln: gecachteRegeln }).ok) {
+    datenbank = gecachteRegeln;
+    regelMeta = gecachteMeta || Object.assign({}, BASIS_META);
+  }
+  renderRegelInfo();
+  // 2) Trainerliste rendern
+  renderTrainer();
+  // 3) Eignung (noch ohne Diagnosegruppe zunächst ausgeblendet)
+  pruefeTrainerEignung();
+  // 4) Verlauf für die Android-Zurück-Taste und Versionsanzeige
+  try { history.replaceState({ v: "scan" }, ""); } catch (e) {}
+  document.getElementById("appVersion").textContent = "RehaSport Check · App-Version " + APP_VERSION;
+})();
+
+</script>
+</body>
+</html>
